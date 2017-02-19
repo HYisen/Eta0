@@ -14,6 +14,10 @@ import javax.xml.parsers.*;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -30,7 +34,7 @@ public class Index {
         //Those names come from the structure of the raw XML data.
 
 
-        public ddReader(List<Hyperlink> data) {
+        ddReader(List<Hyperlink> data) {
             this.data = data;
         }
 
@@ -63,6 +67,23 @@ public class Index {
             }
         }
 
+        @Override
+        public InputSource resolveEntity(String publicId, String systemId) throws IOException, SAXException {
+            final String path="D:\\Code\\";
+            Utility.log("solve p="+publicId+" s="+systemId);
+            String name=systemId.substring(systemId.lastIndexOf('/'));
+            if(!(new File(path+name).exists())){
+                Utility.log("fail to find the local schema, going to creat one.");
+                URL website = new URL(systemId);
+                ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+                FileOutputStream fos = new FileOutputStream(path+name);
+                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                Utility.log("scheme is downloaded to "+path+name);
+            }
+
+            return new InputSource(new FileInputStream(path+name));
+        }
+
         public List<Hyperlink> getData() {
             return data;
         }
@@ -73,15 +94,10 @@ public class Index {
         try {
             SAXParserFactory spf=SAXParserFactory.newInstance();
             spf.setNamespaceAware(true);
-//            spf.setValidating(false);
-//            spf.setFeature("http://xml.org/sax/features/namespaces", false);
-//            spf.setFeature("http://xml.org/sax/features/validation", false);
-//            spf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-//            spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             SAXParser saxParser=spf.newSAXParser();
-            XMLReader xmlReader=saxParser.getXMLReader();
-            xmlReader.setContentHandler(new ddReader(data));
-            xmlReader.parse(new InputSource(new ByteArrayInputStream(source)));
+            //Utility.log("parse alpha");
+            saxParser.parse(new InputSource(new ByteArrayInputStream(source)),new ddReader(data));
+            //Utility.log("parse omega");
         }catch (IOException|SAXException|ParserConfigurationException e){
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -95,7 +111,7 @@ public class Index {
     private String source;
     private String path;
 
-    public Index(String source, String path) {
+    Index(String source, String path) {
         this.source = source;
         this.path = path;
     }
@@ -126,7 +142,7 @@ public class Index {
         });
     }
 
-    public Map<Integer, Hyperlink> getData() {
+    Map<Integer, Hyperlink> getData() {
         return data;
     }
 
@@ -175,23 +191,30 @@ public class Index {
 
         System.out.println("cleaned and output");
 
+
+        Utility.log("SPF initiate");
         SAXParserFactory spf=SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
+        //It doesn't work to serValidating(false)
+        //spf.setValidating(false);
+        Utility.log("SP initiate");
         SAXParser saxParser=spf.newSAXParser();
-        XMLReader xmlReader=saxParser.getXMLReader();
+        //XMLReader xmlReader=saxParser.getXMLReader();
         List<Hyperlink> data=new ArrayList<>();
-        xmlReader.setContentHandler(new ddReader(data));
-        xmlReader.parse("D:\\Code\\out");
+        //xmlReader.setContentHandler(new ddReader(data));
 
-        System.out.println("parsing");
+        Utility.log("parse alpha");
+        //xmlReader.parse("D:\\Code\\out");
+        saxParser.parse("D:\\Code\\out",new ddReader(data));
+        Utility.log("parse omega");
 
-        data.forEach(v-> System.out.println(v.getText()+" -> "+v.getHref()));
-
-        HtmlCleaner cleaner=new HtmlCleaner();
-        TagNode tg=cleaner.clean(new URL("http://www.biqudao.com"+data.get(10).getHref()));
-        new PrettyXmlSerializer(props).writeToFile(
-                tg, "D:\\Code\\chapter", "utf-8"
-        );
+//        data.forEach(v-> System.out.println(v.getText()+" -> "+v.getHref()));
+//
+//        HtmlCleaner cleaner=new HtmlCleaner();
+//        TagNode tg=cleaner.clean(new URL("http://www.biqudao.com"+data.get(10).getHref()));
+//        new PrettyXmlSerializer(props).writeToFile(
+//                tg, "D:\\Code\\chapter", "utf-8"
+//        );
 
         System.out.println("END");
     }
