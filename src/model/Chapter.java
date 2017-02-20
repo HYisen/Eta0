@@ -19,6 +19,7 @@ import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -203,11 +204,15 @@ public class Chapter {
     private String source;
     private String name;
     private String data;
+    private String path;
+    private boolean cached;
 
-    public Chapter(String source,int code, String name) {
-        this.source=source;
+    public Chapter(String source ,int code, String name,String path) {
+        this.source = source;
         this.code = code;
         this.name = name;
+        this.path = path;
+        cached=Files.exists(Paths.get(path+code));
     }
 
     public int getCode() {
@@ -220,18 +225,34 @@ public class Chapter {
 
     public String getData() {
         if(data==null){
-            data=read(select(Utility.clean(source)));
+            if (isCached()) {
+                Utility.log("read one offline");
+                try {
+                    data=new String(Files.readAllBytes(Paths.get(getPath()+getCode())));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Utility.log("load one online");
+                data=read(select(Utility.clean(source)));
+            }
         }
         return data;
     }
 
-    public boolean write(String path){
+    public boolean isCached() {
+        return cached;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public boolean write(){
         try {
-            if(!Files.exists(Paths.get(path)))
+            if(!isCached())
             {
-                Writer w=new FileWriter(path);
-                w.write(getData());
-                w.close();
+                Files.write(Paths.get(getPath()+getCode()),getData().getBytes(), StandardOpenOption.CREATE_NEW);
                 Utility.log("save "+getCode()+" "+getName());
                 return true;
             }
@@ -244,7 +265,7 @@ public class Chapter {
 
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         Utility.log("start");
-        byte[] source=Utility.clean("http://www.biqudao.com/bqge1081/2430964.html");
+        byte[] source=Utility.clean("http://www.23us.cc/html/136/136194/6911853.html");
         Utility.log("cleaned");
         DocumentBuilderFactory dbf=DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
@@ -262,10 +283,12 @@ public class Chapter {
         Node content=search(doc.getDocumentElement(),"br").get(0).getParentNode();
         Utility.log("selected");
         //expand(content,0);
-        FileWriter writer=new FileWriter("D:\\Code\\str");
-        writer.write(read(content));
+//        FileWriter writer=new FileWriter("D:\\Code\\str");
+//        writer.write(read(content));
+        expand(content,0);
+        System.out.println(read(content));
         Utility.log("read");
-        writer.close();
+//        writer.close();
 
         Utility.log("finish");
     }

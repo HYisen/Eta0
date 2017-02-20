@@ -1,8 +1,7 @@
 package model;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -54,24 +53,30 @@ public class Processor {
         writer.close();
     }
     public static void main(String[] args) throws IOException {
-        String path="D:\\Code\\output\\";
+        String path="D:\\Code\\test\\output0\\";
         List<String> books=new ArrayList<>();
-        books.add("http://www.biqudao.com/bqge1081/");
-        Writer iw=new FileWriter(new File(path+"index"),true);//IndexWriter
+        //books.add("http://www.biqudao.com/bqge1081/");
+        //books.add("http://www.fhxiaoshuo.com/read/67/67220/");
+        books.add("http://www.23us.cc/html/136/136194/");
+        Path p=Paths.get(path,"index");
+        if(!Files.exists(p)){
+            Utility.log("creat index");
+            Files.createDirectories(p.getParent());
+            Files.createFile(p);
+        }
         books.stream()
                 .map(url->new Index(url,path))
                 .peek(Index::process)
                 .map(Index::getData)
                 .flatMap(v->v.entrySet().stream())
                 .parallel()
-                .map(v->new Chapter(v.getValue().getHref(),v.getKey(),v.getValue().getText()))
+                .map(v->new Chapter(v.getValue().getHref(),v.getKey(),v.getValue().getText(),path))
                 .sequential()
-                .filter(v-> v.write(path+v.getCode()))
+                .filter(Chapter::write)
                 .forEach(v->{
                     try {
                         String line=v.getCode()+","+v.getName()+"\n";
-                        iw.append(line);
-                        iw.flush();
+                        Files.write(p,line.getBytes(),StandardOpenOption.APPEND);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
