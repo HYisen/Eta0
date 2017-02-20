@@ -1,27 +1,20 @@
 package model;
 
 import com.sun.istack.internal.Nullable;
-import org.htmlcleaner.CleanerProperties;
-import org.htmlcleaner.HtmlCleaner;
-import org.htmlcleaner.PrettyXmlSerializer;
-import org.htmlcleaner.TagNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.*;
 import java.io.*;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.time.LocalTime;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -163,9 +156,15 @@ public class Chapter {
     static Node select(byte[] source){
         try {
             Document doc=db.parse(new ByteArrayInputStream(source));
-            List<Node> result=search(doc.getDocumentElement(),"br");
-            if(!result.isEmpty()){
-                return result.get(0).getParentNode();
+            //System.out.println("GO");
+            Optional<Map.Entry<Node, Long>> result=search(doc.getDocumentElement(),"br").stream()
+                    .map(Node::getParentNode)
+                    .collect(Collectors.groupingBy(Function.identity(),Collectors.counting()))
+                    .entrySet().stream()
+                    //.peek(v-> System.out.println(v.getKey()+"="+v.getValue()))
+                    .max(Map.Entry.comparingByValue());
+            if(result.isPresent()){
+                return result.get().getKey();
             }
         } catch (IOException | SAXException e) {
             e.printStackTrace();
@@ -275,17 +274,18 @@ public class Chapter {
         dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
         dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         DocumentBuilder db=dbf.newDocumentBuilder();
-        Utility.log("parse alpha");
-        Document doc=db.parse(new BufferedInputStream(new ByteArrayInputStream(source)));
-        Utility.log("parse omega");
+        //Utility.log("parse alpha");
+        //Document doc=db.parse(new BufferedInputStream(new ByteArrayInputStream(source)));
+        //Utility.log("parse omega");
         //expand(doc.getDocumentElement(),0);
 
-        Node content=search(doc.getDocumentElement(),"br").get(0).getParentNode();
+        //Node content=search(doc.getDocumentElement(),"br").get(0).getParentNode();
+        Node content=select(source);
         Utility.log("selected");
         //expand(content,0);
 //        FileWriter writer=new FileWriter("D:\\Code\\str");
 //        writer.write(read(content));
-        expand(content,0);
+        //expand(content,0);
         System.out.println(read(content));
         Utility.log("read");
 //        writer.close();

@@ -53,7 +53,7 @@ public class Processor {
         writer.close();
     }
     public static void main(String[] args) throws IOException {
-        String path="D:\\Code\\test\\output0\\";
+        String path="D:\\Code\\test\\output2\\";
         List<String> books=new ArrayList<>();
         //books.add("http://www.biqudao.com/bqge1081/");
         //books.add("http://www.fhxiaoshuo.com/read/67/67220/");
