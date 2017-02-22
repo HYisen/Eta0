@@ -53,11 +53,11 @@ public class Processor {
         writer.close();
     }
     public static void main(String[] args) throws IOException {
-        String path="D:\\Code\\test\\output2\\";
+        String path="D:\\Code\\test\\output1\\";
         List<String> books=new ArrayList<>();
         //books.add("http://www.biqudao.com/bqge1081/");
-        //books.add("http://www.fhxiaoshuo.com/read/67/67220/");
-        books.add("http://www.23us.cc/html/136/136194/");
+        books.add("http://www.fhxiaoshuo.com/read/67/67220/");
+        //books.add("http://www.23us.cc/html/136/136194/");
         Path p=Paths.get(path,"index");
         if(!Files.exists(p)){
             Utility.log("creat index");
