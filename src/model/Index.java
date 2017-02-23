@@ -114,6 +114,15 @@ public class Index {
     Index(String source, String path) {
         this.source = source;
         this.path = path;
+
+        if(!Files.exists(Paths.get(path))){
+            try {
+                Files.createDirectories(Paths.get(path));
+                Files.createFile(Paths.get(path,"index"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     void process(){
@@ -143,6 +152,9 @@ public class Index {
     }
 
     Map<Integer, Hyperlink> getData() {
+        if(data==null){
+            process();
+        }
         return data;
     }
 

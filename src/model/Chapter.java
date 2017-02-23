@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -200,6 +201,7 @@ public class Chapter {
     }
 
     private int code;
+    private Future<byte[]> raw;
     private String source;
     private String name;
     private String data;
@@ -232,11 +234,31 @@ public class Chapter {
                     e.printStackTrace();
                 }
             } else {
-                Utility.log("load one online");
-                data=read(select(Utility.clean(source)));
+                Utility.log("load the online one");
+                if(raw==null){
+                    download();
+                }
+                try {
+                    data=read(select(Utility.clean(raw.get())));
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
             }
         }
         return data;
+    }
+
+    public void download(){
+        if(!cached){
+            raw= CompletableFuture.supplyAsync(()->Utility.download(source));
+        }
+    }
+
+    public void download(Executor exec){
+        if(!cached){
+            raw= CompletableFuture.supplyAsync(()->Utility.download(source),exec);
+        }
     }
 
     public boolean isCached() {
@@ -253,6 +275,10 @@ public class Chapter {
             {
                 Files.write(Paths.get(getPath()+getCode()),getData().getBytes(), StandardOpenOption.CREATE_NEW);
                 Utility.log("save "+getCode()+" "+getName());
+                //To be honest, I don't know the meaning of the index file.
+                Files.write(Paths.get(getPath(),"index"),
+                        (getCode()+","+getName()+"\n").getBytes(),
+                        StandardOpenOption.APPEND);
                 return true;
             }
         } catch (IOException e) {
@@ -263,9 +289,10 @@ public class Chapter {
     }
 
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-        Utility.log("start");
-        byte[] source=Utility.clean("http://www.23us.cc/html/136/136194/6911853.html");
-        Utility.log("cleaned");
+        Utility.stamp("clean 0");
+        byte[] source=Utility.clean("http://www.biqudao.com/bqge1081/2430961.html");
+        Utility.stamp("clean 1");
+        Utility.stamp("init db 0");
         DocumentBuilderFactory dbf=DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(false);
         dbf.setValidating(false);
@@ -274,20 +301,24 @@ public class Chapter {
         dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
         dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         DocumentBuilder db=dbf.newDocumentBuilder();
+        Utility.stamp("init db 1");
         //Utility.log("parse alpha");
         //Document doc=db.parse(new BufferedInputStream(new ByteArrayInputStream(source)));
         //Utility.log("parse omega");
         //expand(doc.getDocumentElement(),0);
 
         //Node content=search(doc.getDocumentElement(),"br").get(0).getParentNode();
+        Utility.stamp("init db 1");
+        Utility.stamp("select 0");
         Node content=select(source);
-        Utility.log("selected");
+        Utility.stamp("select 1");
         //expand(content,0);
 //        FileWriter writer=new FileWriter("D:\\Code\\str");
 //        writer.write(read(content));
         //expand(content,0);
+        Utility.stamp("read 0");
         System.out.println(read(content));
-        Utility.log("read");
+        Utility.stamp("read 1");
 //        writer.close();
 
         Utility.log("finish");

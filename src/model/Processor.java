@@ -73,13 +73,6 @@ public class Processor {
                 .map(v->new Chapter(v.getValue().getHref(),v.getKey(),v.getValue().getText(),path))
                 .sequential()
                 .filter(Chapter::write)
-                .forEach(v->{
-                    try {
-                        String line=v.getCode()+","+v.getName()+"\n";
-                        Files.write(p,line.getBytes(),StandardOpenOption.APPEND);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+                .forEach(v-> Utility.log("add "+v.getName()));
     }
 }

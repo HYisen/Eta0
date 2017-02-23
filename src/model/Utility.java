@@ -19,13 +19,48 @@ import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * Created by Alex on 2017/2/14.
  * Some valuable functions.
  */
 public class Utility {
+    static byte[] download(String url){
+        //Utility.stamp("download 0");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        InputStream is = null;
+        try {
+            is = new URL(url).openStream ();
+            byte[] byteChunk = new byte[4096]; // Or whatever size you want to read in at a time.
+            int n;
+
+            while ( (n = is.read(byteChunk)) > 0 ) {
+                baos.write(byteChunk, 0, n);
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace ();
+        }
+        finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+            //Utility.stamp("download 1");
+        return baos.toByteArray();
+    }
+
     static byte[] clean(String url){
+        return clean(download(url));
+    }
+
+    static byte[] clean(byte[] source){
         //Utility.stamp("clean start");
         CleanerProperties props = new CleanerProperties();
 
@@ -35,32 +70,11 @@ public class Utility {
 
         HtmlCleaner cleaner=new HtmlCleaner();
         TagNode tg;
-        //Utility.stamp("download 0");
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            InputStream is = null;
-            try {
-                is = new URL(url).openStream ();
-                byte[] byteChunk = new byte[4096]; // Or whatever size you want to read in at a time.
-                int n;
-
-                while ( (n = is.read(byteChunk)) > 0 ) {
-                    baos.write(byteChunk, 0, n);
-                }
-            }
-            catch (IOException e) {
-                e.printStackTrace ();
-            }
-            finally {
-                if (is != null) { is.close(); }
-            }
-            byte[] buf=baos.toByteArray();
-            //Utility.stamp("download 1");
-
             //cleaner.clean(new URL(url)) failed to get the correct charset.
             //page "http://www.fhxiaoshuo.com/read/67/67220/" as an example.
             //Utility.stamp("clean 0");
-            tg=cleaner.clean(new ByteArrayInputStream(buf));
+            tg=cleaner.clean(new ByteArrayInputStream(source));
             //Utility.stamp("clean 1");
 
             //Utility.stamp("check 0");
@@ -71,7 +85,7 @@ public class Utility {
             String charset=content.substring(content.indexOf(KEY)+KEY.length());
             //System.out.println("charset = "+charset+" | "+props.getCharset());
             if(!"utf-8".equalsIgnoreCase(charset)){
-                tg=cleaner.clean(new ByteArrayInputStream(buf),charset);
+                tg=cleaner.clean(new ByteArrayInputStream(source),charset);
             }
             //Utility.stamp("check 1");
         } catch (IOException e) {
