@@ -1,5 +1,6 @@
 package model;
 
+import com.sun.istack.internal.Nullable;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.PrettyXmlSerializer;
@@ -21,13 +22,16 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Created by Alex on 2017/2/14.
  * Some valuable functions.
  */
 public class Utility {
-    static byte[] download(String url){
+    @Nullable static byte[] download(String url){
         //Utility.stamp("download 0");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         InputStream is = null;
@@ -42,6 +46,7 @@ public class Utility {
         }
         catch (IOException e) {
             e.printStackTrace ();
+            return null;
         }
         finally {
             if (is != null) {
@@ -56,12 +61,16 @@ public class Utility {
         return baos.toByteArray();
     }
 
-    static byte[] clean(String url){
+    @Nullable static byte[] clean(String url){
         return clean(download(url));
     }
 
-    static byte[] clean(byte[] source){
+    @Nullable static byte[] clean(@Nullable byte[] source){
         //Utility.stamp("clean start");
+        if(source==null){
+            return null;
+        }
+
         CleanerProperties props = new CleanerProperties();
 
         props.setTranslateSpecialEntities(true);

@@ -125,9 +125,13 @@ public class Index {
         }
     }
 
-    void process(){
+    boolean process(){
         data=new TreeMap<>();
-        parse(Utility.clean(source)).forEach(v->{
+        byte[] src=Utility.download(source);
+        if(src==null){
+            return false;
+        }
+        parse(Utility.clean(src)).forEach(v->{
             String link=v.getHref();
             //noinspection StatementWithEmptyBody
             if(link.startsWith("http")){
@@ -149,6 +153,8 @@ public class Index {
 
             data.put(code,new Hyperlink(v.getText(),link));
         });
+
+        return true;
     }
 
     Map<Integer, Hyperlink> getData() {

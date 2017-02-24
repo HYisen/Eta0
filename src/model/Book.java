@@ -29,6 +29,10 @@ public class Book {
         this.name = name;
     }
 
+    public String getName() {
+        return name;
+    }
+
     //What's the difference between open() and read()?
     //You open a book first and then get its index, later can you read the chapters.
     //To make it easier, open() init index & chapters, while read() preload chapters' data
@@ -41,7 +45,8 @@ public class Book {
                 .collect(Collectors.toList());
     }
 
-    private void read(Executor exec){
+    private void read(int nThreads){
+        Executor exec=Executors.newFixedThreadPool(nThreads);
         if(index==null){
             open();
         }
@@ -58,15 +63,15 @@ public class Book {
         //books.add("http://www.fhxiaoshuo.com/read/67/67220/");
         //books.add("http://www.23us.cc/html/136/136194/");
         List<Book> books=new ArrayList<>();
-        ExecutorService es= Executors.newFixedThreadPool(8);
         String path="D:\\Code\\test\\output2\\";
         books.add(new Book("http://www.biqudao.com/bqge1081/",path+"0\\","重生之神级学霸"));
         books.add(new Book("http://www.fhxiaoshuo.com/read/67/67220/",path+"1\\","铁十字"));
         books.add(new Book("http://www.23us.cc/html/136/136194/",path+"2\\","崛起之第三帝国"));
-        books.forEach(v->{
-            v.open();
-            v.read(es);
-            v.save();
-        });
+        books.stream()
+                .parallel()
+                .peek(v->v.read(16))
+                .peek(Book::save)
+                .sequential()
+                .forEach(v->Utility.log(v.getName()+" is finished."));
     }
 }

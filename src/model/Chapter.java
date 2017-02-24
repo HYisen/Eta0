@@ -239,6 +239,15 @@ public class Chapter {
                     download();
                 }
                 try {
+                    //If download failed, try again.
+                    //If failed again, throw Exception.
+                    if(raw.get()==null){
+                        download();
+                    }
+                    if(raw.get()==null){
+                        throw new RuntimeException();
+                    }
+
                     data=read(select(Utility.clean(raw.get())));
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
