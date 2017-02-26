@@ -186,10 +186,11 @@ public class Chapter {
             String name=it.getNodeName();
             switch (name){
                 case "#text":
-                    String line=it.getNodeValue().trim();
-                    int anchor=line.indexOf(" ");
-                    if(anchor!=-1){
-                        sb.append(line.substring(anchor)).append("\n");
+                    //replace all blanks to space.
+                    String line=it.getNodeValue().replace('　',' ').trim();
+
+                    if(!line.isEmpty()){
+                        sb.append("    ").append(line).append("\n");
                     }
                     break;
                 case  "br":
@@ -242,6 +243,7 @@ public class Chapter {
                     //If download failed, try again.
                     //If failed again, throw Exception.
                     if(raw.get()==null){
+                        Utility.log("failed to download, try again.");
                         download();
                     }
                     if(raw.get()==null){
@@ -299,7 +301,7 @@ public class Chapter {
 
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         Utility.stamp("clean 0");
-        byte[] source=Utility.clean("http://www.biqudao.com/bqge1081/2430961.html");
+        byte[] source=Utility.clean("http://www.biqudao.com/bqge1081/2541300.html");
         Utility.stamp("clean 1");
         Utility.stamp("init db 0");
         DocumentBuilderFactory dbf=DocumentBuilderFactory.newInstance();
@@ -324,7 +326,7 @@ public class Chapter {
         //expand(content,0);
 //        FileWriter writer=new FileWriter("D:\\Code\\str");
 //        writer.write(read(content));
-        //expand(content,0);
+        expand(content,0);
         Utility.stamp("read 0");
         System.out.println(read(content));
         Utility.stamp("read 1");
