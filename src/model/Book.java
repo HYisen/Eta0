@@ -62,16 +62,15 @@ public class Book {
         //books.add("http://www.biqudao.com/bqge1081/");
         //books.add("http://www.fhxiaoshuo.com/read/67/67220/");
         //books.add("http://www.23us.cc/html/136/136194/");
+        System.out.println("GO");
         List<Book> books=new ArrayList<>();
         String path="D:\\Code\\test\\output2\\";
         books.add(new Book("http://www.biqudao.com/bqge1081/",path+"0\\","重生之神级学霸"));
         books.add(new Book("http://www.fhxiaoshuo.com/read/67/67220/",path+"1\\","铁十字"));
         books.add(new Book("http://www.23us.cc/html/136/136194/",path+"2\\","崛起之第三帝国"));
         books.stream()
-                .parallel()
                 .peek(v->v.read(16))
                 .peek(Book::save)
-                .sequential()
                 .forEach(v->Utility.log(v.getName()+" is finished."));
     }
 }

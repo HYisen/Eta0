@@ -187,8 +187,13 @@ public class Chapter {
             switch (name){
                 case "#text":
                     //replace all blanks to space.
-                    String line=it.getNodeValue().replace('　',' ').trim();
+                    //String line=it.getNodeValue().replace('　',' ')..replace(' ',' ').trim();
+                    String line=it.getNodeValue().replaceAll("[　 ]"," ").trim();
+                    //The previous one is dirty but workable,
+                    //while the next one looks elegant but doesn't work.
+                    //String line=it.getNodeValue().replaceAll("\\p{Blank}"," ").trim();
 
+                    //System.out.println("line = "+line);
                     if(!line.isEmpty()){
                         sb.append("    ").append(line).append("\n");
                     }
@@ -301,7 +306,8 @@ public class Chapter {
 
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         Utility.stamp("clean 0");
-        byte[] source=Utility.clean("http://www.biqudao.com/bqge1081/2541300.html");
+        //byte[] source=Utility.clean("http://www.biqudao.com/bqge1081/2541300.html");
+        byte[] source=Utility.clean("http://www.fhxiaoshuo.com/read/67/67220/16144874.shtml");
         Utility.stamp("clean 1");
         Utility.stamp("init db 0");
         DocumentBuilderFactory dbf=DocumentBuilderFactory.newInstance();

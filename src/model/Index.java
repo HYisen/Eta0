@@ -17,6 +17,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -123,6 +124,21 @@ public class Index {
                 e.printStackTrace();
             }
         }
+
+        setupLog();
+    }
+
+    boolean setupLog(){
+        Path p=Paths.get(getPath(),"index");
+        if(!Files.exists(p)){
+            try {
+                Files.createFile(p);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
     }
 
     boolean process(){
