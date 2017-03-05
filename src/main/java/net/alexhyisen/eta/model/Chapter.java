@@ -1,12 +1,12 @@
 package net.alexhyisen.eta.model;
 
-import com.sun.istack.internal.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.annotation.Nullable;
 import javax.xml.parsers.*;
 import java.io.*;
 import java.nio.file.Files;

@@ -1,11 +1,11 @@
 package net.alexhyisen.eta.model;
 
-import com.sun.istack.internal.Nullable;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.PrettyXmlSerializer;
 import org.htmlcleaner.TagNode;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
