@@ -1,6 +1,4 @@
-package model;
-
-import java.io.Serializable;
+package net.alexhyisen.eta.model;
 
 /**
  * Created by Alex on 2017/2/1.

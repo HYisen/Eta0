@@ -1,4 +1,4 @@
-package model;
+package net.alexhyisen.eta.model;
 
 import com.sun.istack.internal.Nullable;
 import org.w3c.dom.Document;

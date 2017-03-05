@@ -1,13 +1,9 @@
-package model;
+package net.alexhyisen.eta.model;
 
 import org.htmlcleaner.CleanerProperties;
-import org.htmlcleaner.HtmlCleaner;
-import org.htmlcleaner.PrettyXmlSerializer;
-import org.htmlcleaner.TagNode;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.*;

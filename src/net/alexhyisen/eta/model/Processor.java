@@ -1,4 +1,4 @@
-package model;
+package net.alexhyisen.eta.model;
 
 import java.io.*;
 import java.nio.file.*;

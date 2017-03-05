@@ -1,4 +1,4 @@
-package model;
+package net.alexhyisen.eta.model;
 
 import java.io.File;
 import java.io.FileWriter;

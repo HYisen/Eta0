@@ -1,30 +1,19 @@
-package model;
+package net.alexhyisen.eta.model;
 
 import com.sun.istack.internal.Nullable;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.PrettyXmlSerializer;
 import org.htmlcleaner.TagNode;
-import sun.nio.ch.IOUtil;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * Created by Alex on 2017/2/14.
