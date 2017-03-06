@@ -1,5 +1,9 @@
 package net.alexhyisen.eta.model;
 
+import net.alexhyisen.eta.model.mailer.Mail;
+import net.alexhyisen.eta.model.mailer.MailService;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -29,6 +33,10 @@ public class Book {
 
     public String getName() {
         return name;
+    }
+
+    public List<Chapter> getChapters() {
+        return chapters;
     }
 
     //What's the difference between open() and read()?
@@ -70,5 +78,27 @@ public class Book {
                 .peek(v->v.read(16))
                 .peek(Book::save)
                 .forEach(v->Utility.log(v.getName()+" is finished."));
+
+        Book book=books.get(0);
+        Chapter chapter=book.getChapters().get(200);
+        Config config=new Config();
+
+        MailService ms=new MailService(
+                config.get("client"),
+                config.get("server"),
+                config.get("username"),
+                config.get("password")
+        );
+
+        String subject=String.format("《%s》 %s",book.getName(),chapter.getName());
+        Mail mail=new Mail(
+                config.get("senderName"),config.get("senderAddr"),
+                config.get("recipientName"),config.get("recipientAddr"),
+                subject,chapter.getData());
+        try {
+            ms.send(mail);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

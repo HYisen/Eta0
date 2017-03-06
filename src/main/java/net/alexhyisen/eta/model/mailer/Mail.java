@@ -14,11 +14,11 @@ public class Mail {
     private final String recipientName;
     private final String recipientAddr;
     private final String subject;
-    private final String content;
+    private final String content[];
 
     public Mail(@Nullable String senderName, String senderAddr,
                 @Nullable String recipientName, String recipientAddr,
-                String subject, String content) {
+                String subject, String... content) {
         this.senderName = senderName;
         this.senderAddr = senderAddr;
         this.recipientName = recipientName;
@@ -31,7 +31,7 @@ public class Mail {
         return subject;
     }
 
-    public String getContent() {
+    public String[] getContent() {
         return content;
     }
 

@@ -20,6 +20,8 @@ public class MailService {
     private String username;
     private String password;
 
+    private static final String INDENTATION="        ";
+
     public MailService(String client, String server, String username, String password) {
         this.client = client;
         this.server = server;
@@ -95,8 +97,8 @@ public class MailService {
         client.send(String.format("To: %s",
                 composeIdentity(mail.getRecipientName(),mail.getRecipientAddr())));
         client.send("");
-        for(String line:mail.getContent().split("\n")){
-            client.send(line);
+        for(String line:mail.getContent()){
+            client.send(INDENTATION+line);
         }
         client.send(".");
         if(!passCheckpoint(client.receive(), "250", "Mail OK")){
@@ -120,10 +122,16 @@ public class MailService {
                 config.get("password")
         );
 
+        String[] content={
+                "Nothing serious",
+                "没什么大不了的",
+                "なんでもないや"
+        };
+
         Mail mail=new Mail(
                 config.get("senderName"),config.get("senderAddr"),
                 config.get("recipientName"),config.get("recipientAddr"),
-                "SMTP_测试邮件","nothing serious.\n没什么大不了的。\n");
+                "SMTP_测试邮件",content);
         ms.send(mail);
     }
 }

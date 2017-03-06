@@ -35,12 +35,14 @@ public class Processor {
                         System.out.println("deal "+v.getHref());
                         String name=v.getHref().substring(v.getHref().lastIndexOf('/')+1,v.getHref().indexOf('.'));
                         Writer w=new FileWriter("D:\\Code\\output\\"+name);
-                        String content=Stream.of("http://www.biqudao.com"+v.getHref())
+                        String content[]=Stream.of("http://www.biqudao.com"+v.getHref())
                                 .map(Utility::clean)
                                 .map(Chapter::select)
                                 .map(Chapter::read)
                                 .findAny().get();
-                        w.write(content);
+                        for(String line:content){
+                            w.write(line);
+                        }
                         w.close();
                     } catch (IOException e) {
                         e.printStackTrace();

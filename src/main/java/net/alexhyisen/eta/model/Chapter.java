@@ -175,42 +175,43 @@ public class Chapter {
         return null;
     }
 
-    static String read(Node content){
+    static String[] read(Node content){
+        List<String> rtn=new LinkedList<>();
         if(content==null){
-            return "nothing";
-        }
-        StringBuilder sb=new StringBuilder();
-        NodeList nl=content.getChildNodes();
-        for(int k=0;k!=nl.getLength();++k){
-            Node it=nl.item(k);
-            String name=it.getNodeName();
-            switch (name){
-                case "#text":
-                    //replace all blanks to space.
-                    //String line=it.getNodeValue().replace('　',' ')..replace(' ',' ').trim();
-                    String line=it.getNodeValue().replaceAll("[　 ]"," ").trim();
-                    //The previous one is dirty but workable,
-                    //while the next one looks elegant but doesn't work.
-                    //String line=it.getNodeValue().replaceAll("\\p{Blank}"," ").trim();
+            rtn.add("nothing");
+        }else{
+            NodeList nl=content.getChildNodes();
+            for(int k=0;k!=nl.getLength();++k){
+                Node it=nl.item(k);
+                String name=it.getNodeName();
+                switch (name){
+                    case "#text":
+                        //replace all blanks to space.
+                        //String line=it.getNodeValue().replace('　',' ')..replace(' ',' ').trim();
+                        String line=it.getNodeValue().replaceAll("[　 ]"," ").trim();
+                        //The previous one is dirty but workable,
+                        //while the next one looks elegant but doesn't work.
+                        //String line=it.getNodeValue().replaceAll("\\p{Blank}"," ").trim();
 
-                    //System.out.println("line = "+line);
-                    if(!line.isEmpty()){
-                        sb.append("    ").append(line).append("\n");
-                    }
-                    break;
-                case  "br":
-                    //sb.append("\n");
-                    break;
+                        //System.out.println("line = "+line);
+                        if(!line.isEmpty()){
+                            rtn.add(line);
+                        }
+                        break;
+                    case  "br":
+                        //rtn.add("");
+                        break;
+                }
             }
         }
-        return sb.toString();
+        return rtn.toArray(new String[rtn.size()]);
     }
 
     private int code;
     private Future<byte[]> raw;
     private String source;
     private String name;
-    private String data;
+    private String[] data;
     private String path;
     private boolean cached;
 
@@ -230,12 +231,13 @@ public class Chapter {
         return name;
     }
 
-    public String getData() {
+    public String[] getData() {
         if(data==null){
             if (isCached()) {
                 Utility.log("read one offline");
                 try {
-                    data=new String(Files.readAllBytes(Paths.get(getPath()+getCode())));
+                    List<String> lines=Files.readAllLines(Paths.get(getPath()+getCode()));
+                    data=lines.toArray(new String[lines.size()]);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -289,7 +291,7 @@ public class Chapter {
         try {
             if(!isCached())
             {
-                Files.write(Paths.get(getPath()+getCode()),getData().getBytes(), StandardOpenOption.CREATE_NEW);
+                Files.write(Paths.get(getPath()+getCode()),Arrays.asList(getData()), StandardOpenOption.CREATE_NEW);
                 Utility.log("save "+getCode()+" "+getName());
                 //To be honest, I don't know the meaning of the index file.
                 Files.write(Paths.get(getPath(),"index"),
@@ -330,11 +332,13 @@ public class Chapter {
         Node content=select(source);
         Utility.stamp("select 1");
         //expand(content,0);
-//        FileWriter writer=new FileWriter("D:\\Code\\str");
-//        writer.write(read(content));
+//        PrintWriter writer=new PrintWriter(new FileWriter("D:\\Code\\str"));
+//        for(String line:read(content)){
+//            writer.println(line);
+//        }
         expand(content,0);
         Utility.stamp("read 0");
-        System.out.println(read(content));
+        Arrays.stream(read(content)).forEach(System.out::println);
         Utility.stamp("read 1");
 //        writer.close();
 
