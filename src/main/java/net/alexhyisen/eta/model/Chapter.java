@@ -297,6 +297,7 @@ public class Chapter {
                 Files.write(Paths.get(getPath(),"index"),
                         (getCode()+","+getName()+"\n").getBytes(),
                         StandardOpenOption.APPEND);
+                cached=true;
                 return true;
             }
         } catch (IOException e) {
