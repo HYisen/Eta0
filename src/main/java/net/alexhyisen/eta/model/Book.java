@@ -25,7 +25,6 @@ public class Book {
     private String name;
 
     private boolean cached =false;
-    private ExecutorService rexec;//read() Executor
 
     public Book(String source, String path, String name) {
         this.source = source;
@@ -54,22 +53,17 @@ public class Book {
     }
 
     public void read(int nThreads){
-        rexec=Executors.newFixedThreadPool(nThreads);
+        ExecutorService exec=Executors.newFixedThreadPool(nThreads);
         if(index==null){
             open();
         }
-        chapters.forEach(v->v.download(rexec));
-        cached =true;
+        chapters.forEach(v->v.download(exec));
+        exec.shutdown();
+        cached=true;
     }
 
     public List<Chapter> save(){
         return  getChapters().stream().filter(Chapter::write).collect(Collectors.toList());
-    }
-
-    //shutdown the ExecutorService used for read(), to let the program exit properly.
-    //read() would be unavailable when close() is already called.
-    public void stopService(){
-        rexec.shutdown();
     }
 
     public static void main(String[] args) {
@@ -79,8 +73,8 @@ public class Book {
         System.out.println("GO");
         List<Book> books=new ArrayList<>();
         String path="D:\\Code\\test\\output2\\";
-        books.add(new Book("http://www.biqudao.com/bqge1081/",path+"0\\","重生之神级学霸"));
-        books.add(new Book("http://www.fhxiaoshuo.com/read/67/67220/",path+"1\\","铁十字"));
+        //books.add(new Book("http://www.biqudao.com/bqge1081/",path+"0\\","重生之神级学霸"));
+        //books.add(new Book("http://www.fhxiaoshuo.com/read/67/67220/",path+"1\\","铁十字"));
         books.add(new Book("http://www.23us.cc/html/136/136194/",path+"2\\","崛起之第三帝国"));
 //        books.stream()
 //                .peek(v->v.read(16))
@@ -95,7 +89,7 @@ public class Book {
                 config.get("password")
         );
         for(Book book:books){
-            book.read(16);
+            book.read(20);
             book.save().forEach(chapter->{
                 String subject=String.format("《%s》 %s",book.getName(),chapter.getName());
                 Mail mail=new Mail(
@@ -109,22 +103,7 @@ public class Book {
                     e.printStackTrace();
                 }
             });
-            book.stopService();
         }
-
-//        Book book=books.get(0);
-//        Chapter chapter=book.getChapters().get(200);
-//
-//        String subject=String.format("《%s》 %s",book.getName(),chapter.getName());
-//        Mail mail=new Mail(
-//                config.get("senderName"),config.get("senderAddr"),
-//                config.get("recipientName"),config.get("recipientAddr"),
-//                subject,chapter.getData());
-//        try {
-//            ms.send(mail);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
 
         System.out.println("END");
     }
