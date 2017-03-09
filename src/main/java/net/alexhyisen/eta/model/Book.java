@@ -44,14 +44,14 @@ public class Book {
     //To make it easier, open() init index & chapters, while read() preload chapters' data
     //from the Internet, which is the most time consuming procedure.
 
-    private void open(){
+    public void open(){
         index=new Index(source,path);
         chapters=index.getData().entrySet().stream()
                 .map(v->new Chapter(v.getValue().getHref(),v.getKey(),v.getValue().getText(),path))
                 .collect(Collectors.toList());
     }
 
-    private void read(int nThreads){
+    public void read(int nThreads){
         Executor exec=Executors.newFixedThreadPool(nThreads);
         if(index==null){
             open();
@@ -60,7 +60,7 @@ public class Book {
         cached =true;
     }
 
-    private List<Chapter> save(){
+    public List<Chapter> save(){
         return  getChapters().stream().filter(Chapter::write).collect(Collectors.toList());
     }
 

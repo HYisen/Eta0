@@ -306,43 +306,4 @@ public class Chapter {
         Utility.log("skip "+getCode()+" "+getName());
         return false;
     }
-
-    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-        Utility.stamp("clean 0");
-        //byte[] source=Utility.clean("http://www.biqudao.com/bqge1081/2541300.html");
-        byte[] source=Utility.clean("http://www.fhxiaoshuo.com/read/67/67220/16144874.shtml");
-        Utility.stamp("clean 1");
-        Utility.stamp("init db 0");
-        DocumentBuilderFactory dbf=DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(false);
-        dbf.setValidating(false);
-        dbf.setFeature("http://xml.org/sax/features/namespaces", false);
-        dbf.setFeature("http://xml.org/sax/features/validation", false);
-        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-        dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        DocumentBuilder db=dbf.newDocumentBuilder();
-        Utility.stamp("init db 1");
-        //Utility.log("parse alpha");
-        //Document doc=db.parse(new BufferedInputStream(new ByteArrayInputStream(source)));
-        //Utility.log("parse omega");
-        //expand(doc.getDocumentElement(),0);
-
-        //Node content=search(doc.getDocumentElement(),"br").get(0).getParentNode();
-        Utility.stamp("init db 1");
-        Utility.stamp("select 0");
-        Node content=select(source);
-        Utility.stamp("select 1");
-        //expand(content,0);
-//        PrintWriter writer=new PrintWriter(new FileWriter("D:\\Code\\str"));
-//        for(String line:read(content)){
-//            writer.println(line);
-//        }
-        expand(content,0);
-        Utility.stamp("read 0");
-        Arrays.stream(read(content)).forEach(System.out::println);
-        Utility.stamp("read 1");
-//        writer.close();
-
-        Utility.log("finish");
-    }
 }

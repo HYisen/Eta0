@@ -22,7 +22,7 @@ import java.util.*;
  * Index is the avatar of an index page.
  */
 public class Index {
-    private static class ddReader extends DefaultHandler {
+    static class ddReader extends DefaultHandler {
         String name=null;
         String link=null;
         boolean isValid=false;
@@ -67,7 +67,7 @@ public class Index {
         @Override
         public InputSource resolveEntity(String publicId, String systemId) throws IOException, SAXException {
             final String path="D:\\Code\\";
-            Utility.log("solve p="+publicId+" s="+systemId);
+            //Utility.log("solve p="+publicId+" s="+systemId);
             String name=systemId.substring(systemId.lastIndexOf('/'));
             if(!(new File(path+name).exists())){
                 Utility.log("fail to find the local schema, going to creat one.");
@@ -190,62 +190,5 @@ public class Index {
 
     public String getPath() {
         return path;
-    }
-
-
-    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-//        URL oracle = new URL("http://www.biqudao.com/bqge1081/");
-//        BufferedReader in = new BufferedReader(
-//                new InputStreamReader(oracle.openStream(),"UTF-8"));
-//
-//        System.out.println("GO");
-//        String inputLine;
-//        PrintStream os=new PrintStream("D:\\Code\\out");
-//        while ((inputLine = in.readLine()) != null){
-//            os.println(inputLine);
-//            System.out.println(inputLine);
-//        }
-//        in.close();
-
-        CleanerProperties props = new CleanerProperties();
-
-        props.setTranslateSpecialEntities(true);
-        props.setTransResCharsToNCR(true);
-        props.setOmitComments(true);
-
-//        HtmlCleaner cleaner=new HtmlCleaner();
-//        TagNode tg=cleaner.clean(new URL("http://www.biqudao.com/bqge1081/"));
-//        new PrettyXmlSerializer(props).writeToFile(
-//                tg, "D:\\Code\\out", "utf-8"
-//        );
-
-        System.out.println("cleaned and output");
-
-
-        Utility.log("SPF initiate");
-        SAXParserFactory spf=SAXParserFactory.newInstance();
-        spf.setNamespaceAware(true);
-        //It doesn't work to serValidating(false)
-        //spf.setValidating(false);
-        Utility.log("SP initiate");
-        SAXParser saxParser=spf.newSAXParser();
-        //XMLReader xmlReader=saxParser.getXMLReader();
-        List<Hyperlink> data=new ArrayList<>();
-        //xmlReader.setContentHandler(new ddReader(data));
-
-        Utility.log("parse alpha");
-        //xmlReader.parse("D:\\Code\\out");
-        saxParser.parse("D:\\Code\\out",new ddReader(data));
-        Utility.log("parse omega");
-
-//        data.forEach(v-> System.out.println(v.getText()+" -> "+v.getHref()));
-//
-//        HtmlCleaner cleaner=new HtmlCleaner();
-//        TagNode tg=cleaner.clean(new URL("http://www.biqudao.com"+data.get(10).getHref()));
-//        new PrettyXmlSerializer(props).writeToFile(
-//                tg, "D:\\Code\\chapter", "utf-8"
-//        );
-
-        System.out.println("END");
     }
 }
