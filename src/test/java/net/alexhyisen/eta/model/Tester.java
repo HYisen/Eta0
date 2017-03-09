@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -85,17 +86,18 @@ public class Tester {
         int nThread=1;
         int size=4;
         t.resume("MTD "+size+" file(s) with "+nThread+" thread(s)");
-        Executor exec= Executors.newFixedThreadPool(nThread);
-        long cnt=links.entrySet().stream()
+        ExecutorService exec= Executors.newFixedThreadPool(nThread);
+        long cnt= links.entrySet().stream()
                 .skip(42)//skip the possible vacuum header pages.
                 .limit(size)
-                .map(v->new Chapter(v.getValue().getHref(),v.getKey(),v.getValue().getText(),path))
-                .peek(v->v.download(exec))
+                .map(v -> new Chapter(v.getValue().getHref(), v.getKey(), v.getValue().getText(), path))
+                .peek(v -> v.download(exec))
                 .collect(Collectors.toList())//join
                 .stream()
                 .map(Chapter::getData)
-                .map(v->v.length)
-                .count();
+                .mapToLong(v -> v.length)
+                .sum();
+        //exec.shutdown();//need to be shutdown manually.
         t.report();
         System.out.println(cnt+" lines are read.");
     }

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ public class Book {
     private String name;
 
     private boolean cached =false;
+    private ExecutorService rexec;//read() Executor
 
     public Book(String source, String path, String name) {
         this.source = source;
@@ -52,16 +54,22 @@ public class Book {
     }
 
     public void read(int nThreads){
-        Executor exec=Executors.newFixedThreadPool(nThreads);
+        rexec=Executors.newFixedThreadPool(nThreads);
         if(index==null){
             open();
         }
-        chapters.forEach(v->v.download(exec));
+        chapters.forEach(v->v.download(rexec));
         cached =true;
     }
 
     public List<Chapter> save(){
         return  getChapters().stream().filter(Chapter::write).collect(Collectors.toList());
+    }
+
+    //shutdown the ExecutorService used for read(), to let the program exit properly.
+    //read() would be unavailable when close() is already called.
+    public void stopService(){
+        rexec.shutdown();
     }
 
     public static void main(String[] args) {
@@ -101,6 +109,7 @@ public class Book {
                     e.printStackTrace();
                 }
             });
+            book.stopService();
         }
 
 //        Book book=books.get(0);
