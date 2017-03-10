@@ -3,10 +3,10 @@ package net.alexhyisen.eta.model;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
 
+import javax.xml.bind.annotation.XmlElement;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -32,8 +32,44 @@ public class Book {
         this.name = name;
     }
 
+    public Book() {
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Book && this.source.equals(((Book) obj).source) && this.path.equals(((Book) obj).path) && this.name.equals(((Book) obj).name);
+    }
+
+    @Override
+    public int hashCode() {
+        return source.hashCode();
+    }
+
+    @XmlElement(name = "link")
+    public String getSource() {
+        return source;
+    }
+
+    @XmlElement(name = "path")
+    public String getPath() {
+        return path;
+    }
+
+    @XmlElement(name = "name")
     public String getName() {
         return name;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public List<Chapter> getChapters() {
@@ -73,8 +109,8 @@ public class Book {
         System.out.println("GO");
         List<Book> books=new ArrayList<>();
         String path="D:\\Code\\test\\output2\\";
-        //books.add(new Book("http://www.biqudao.com/bqge1081/",path+"0\\","重生之神级学霸"));
-        //books.add(new Book("http://www.fhxiaoshuo.com/read/67/67220/",path+"1\\","铁十字"));
+        books.add(new Book("http://www.biqudao.com/bqge1081/",path+"0\\","重生之神级学霸"));
+        books.add(new Book("http://www.fhxiaoshuo.com/read/67/67220/",path+"1\\","铁十字"));
         books.add(new Book("http://www.23us.cc/html/136/136194/",path+"2\\","崛起之第三帝国"));
 //        books.stream()
 //                .peek(v->v.read(16))
