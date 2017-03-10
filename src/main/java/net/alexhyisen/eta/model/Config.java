@@ -24,6 +24,14 @@ public class Config {
         }
     }
 
+    //That explicit constructor is only used for redirect path in Test s
+    public Config(Path path) {
+        this.path = path;
+        if(Files.exists(path)){
+            load();
+        }
+    }
+
     public String get(String key){
         return data.get(key);
     }
