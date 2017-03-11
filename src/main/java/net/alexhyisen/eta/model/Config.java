@@ -1,9 +1,10 @@
 package net.alexhyisen.eta.model;
 
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.*;
 import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,11 +43,9 @@ public class Config {
 
     public boolean save(){
         try {
-            PrintWriter pw=new PrintWriter(new FileWriter((path.toFile()),false));
-            data.entrySet().stream()
-                    .map(v->v.getKey()+"="+v.getValue())
-                    .forEach(pw::println);
-            pw.close();
+            Gson gson=new GsonBuilder().setPrettyPrinting().create();
+            Files.deleteIfExists(path);
+            Files.write(path,gson.toJson(data).getBytes(),StandardOpenOption.CREATE_NEW);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -57,9 +56,8 @@ public class Config {
     public boolean load(){
         data=new HashMap<>();
         try {
-            Files.lines(path)
-                    .map(str->str.split("="))
-                    .forEach(array->data.put(array[0],array[1]));
+            Gson gson=new GsonBuilder().setPrettyPrinting().create();
+            data=gson.fromJson(new String(Files.readAllBytes(path)),new TypeToken<Map<String,String>>(){}.getType());
             return true;
         } catch (IOException e) {
             e.printStackTrace();
