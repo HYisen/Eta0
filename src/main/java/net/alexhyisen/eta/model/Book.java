@@ -118,6 +118,7 @@ public class Book {
 //                .forEach(v->Utility.log(v.getName()+" is finished."));
 
         Config config=new Config();
+        config.load();
         MailService ms=new MailService(
                 config.get("client"),
                 config.get("server"),

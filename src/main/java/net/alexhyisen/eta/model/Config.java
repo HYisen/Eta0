@@ -7,6 +7,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.*;
 import java.nio.file.*;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -15,22 +16,16 @@ import java.util.Map;
  */
 
 public class Config {
-    private Map<String,String> data=new HashMap<>();
+    private Map<String,String> data=new LinkedHashMap<>();
     private final Path path;
 
     public Config() {
         this.path=Paths.get(".","config");
-        if(Files.exists(path)){
-            load();
-        }
     }
 
     //That explicit constructor is only used for redirect path in Test s
     public Config(Path path) {
         this.path = path;
-        if(Files.exists(path)){
-            load();
-        }
     }
 
     public String get(String key){
@@ -54,7 +49,7 @@ public class Config {
     }
 
     public boolean load(){
-        data=new HashMap<>();
+        data=new LinkedHashMap<>();//I want to keep the config content in insert order
         try {
             Gson gson=new GsonBuilder().setPrettyPrinting().create();
             data=gson.fromJson(new String(Files.readAllBytes(path)),new TypeToken<Map<String,String>>(){}.getType());
