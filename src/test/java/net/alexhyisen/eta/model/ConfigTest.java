@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 
 /**
  * Created by Alex on 2017/3/12.
+ * Test whether Config works properly.
  */
 public class ConfigTest {
     private Path path;

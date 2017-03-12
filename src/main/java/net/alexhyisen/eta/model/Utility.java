@@ -103,7 +103,7 @@ public class Utility {
         return os.toByteArray();
     }
 
-    static void log(String msg){
+    public static void log(String msg){
         System.out.println(LocalTime.now()+" "+msg);
     }
 
@@ -115,11 +115,5 @@ public class Utility {
         long interval= Duration.between(record,Instant.now()).toMillis();
         record=Instant.now();
         System.out.printf("T+%4dms %s\n",interval,msg);
-    }
-
-    public static void main(String[] args) throws IOException {
-        byte[] data=Utility.clean("http://www.fhxiaoshuo.com/read/67/67220/");
-        //byte[] data=Utility.clean("http://www.biqudao.com/bqge1081/");
-        Files.write(Paths.get("D:\\Code\\test\\output1\\cs1"),data, StandardOpenOption.CREATE);
     }
 }
