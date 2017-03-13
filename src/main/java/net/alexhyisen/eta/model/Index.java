@@ -15,6 +15,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 /**
@@ -66,16 +67,26 @@ public class Index {
 
         @Override
         public InputSource resolveEntity(String publicId, String systemId) throws IOException, SAXException {
-            final String path="D:\\Code\\";
+            final String path=".\\";
             //Utility.log("solve p="+publicId+" s="+systemId);
             String name=systemId.substring(systemId.lastIndexOf('/'));
-            if(!(new File(path+name).exists())){
+            if(!(Paths.get(path,name).toFile().exists())){
+                if(systemId.startsWith("http")){
+                    String prefix=systemId.substring(0,systemId.lastIndexOf('/'));
+                    Files.write(Paths.get(path,"prefix"),prefix.getBytes(), StandardOpenOption.CREATE);
+                }else if(systemId.startsWith("file")){
+                        String prefix=Files.lines(Paths.get(path,"prefix"))
+                                .findAny()
+                                .orElse("http://www.w3.org/TR/xhtml1/DTD/");
+                        systemId=prefix+systemId.substring(systemId.lastIndexOf('/'));
+                    //Utility.log("reformed s="+systemId);
+                }
                 Utility.log("fail to find the local schema, going to creat one.");
                 URL website = new URL(systemId);
                 ReadableByteChannel rbc = Channels.newChannel(website.openStream());
                 FileOutputStream fos = new FileOutputStream(path+name);
                 fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                Utility.log("scheme is downloaded to "+path+name);
+                Utility.log("scheme is downloaded to "+Paths.get(path,name).toAbsolutePath().toString());
             }
 
             return new InputSource(new FileInputStream(path+name));
