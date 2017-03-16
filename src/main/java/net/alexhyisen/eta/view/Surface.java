@@ -4,6 +4,7 @@ import net.alexhyisen.eta.model.*;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
@@ -92,11 +93,14 @@ public class Surface {
         }while (true);
     }
 
+    //return null if the quit id, which is -1, is selected
+    @Nullable
     private static <T> T select(List<T> candidates, Function<T,String> getNameMethod){
         for (int k = 0; k < candidates.size(); k++) {
             System.out.printf("\t%4d -> %s\n",k,getNameMethod.apply(candidates.get(k)));
         }
-        return candidates.get(Integer.valueOf(getInput("selected id",tran(v->v>=0&&v<candidates.size()))));
+        int choice=Integer.valueOf(getInput("selected id",tran(v->v>=-1&&v<candidates.size())));
+        return choice==-1?null:candidates.get(choice);
     }
 
     private enum Command{
@@ -126,22 +130,43 @@ public class Surface {
         System.out.println("Welcome to Eta Command Line Interface");
         System.out.println("loading default source file from .\\source");
 
+        System.out.println();
         System.out.println("when facing requirement command =");
         Arrays.stream(Command.values()).forEach(v-> System.out.println(v.toString()+" means "+v.getInfo()));
         System.out.println("input one of thr previous commands");
+
+        System.out.println();
+        System.out.println("when facing requirement command =");
+        Arrays.stream(Command.values()).forEach(v-> System.out.println(v.toString()+" means "+v.getInfo()));
+        System.out.println("input one of thr previous commands");
+
+        System.out.println();
+        System.out.println("when facing requirement selected id =");
+        System.out.println("just input the id you selected");
+        System.out.println("input -1 will forced it back to the upper menu");
 
         Source source=new Source();
         source.load();
 
         selectBook:
         while(true){
+            System.out.println();
+            System.out.println("please selected the book");
             Book book=select(source.getData(),Book::getName);
+            if(book==null){
+                break;
+            }
             System.out.println("opening book "+book.getName()+" from "+book.getSource());
             book.open();
 
             selectChapter:
             while(true){
+                System.out.println();
+                System.out.println("please selected the chapter");
                 Chapter chapter=select(book.getChapters(),Chapter::getName);
+                if(chapter==null){
+                    continue selectBook;
+                }
                 printChapter(book,chapter);
 
                 while (true){
