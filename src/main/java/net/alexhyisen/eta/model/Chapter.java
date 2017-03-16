@@ -231,6 +231,10 @@ public class Chapter {
         return name;
     }
 
+    public Future<byte[]> getRaw() {
+        return raw;
+    }
+
     public String[] getData() {
         if(data==null){
             if (isCached()) {

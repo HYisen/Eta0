@@ -7,6 +7,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -81,21 +83,38 @@ public class Tester {
         Index one=new Index("http://www.biqudao.com/bqge1081/",path);
         Map<Integer,Hyperlink> links=one.getData();
 
-        int nThread=1;
-        int size=4;
+        int nThread=64;
+        int size=128;
         t.resume("MTD "+size+" file(s) with "+nThread+" thread(s)");
         ExecutorService exec= Executors.newFixedThreadPool(nThread);
         long cnt= links.entrySet().stream()
                 .skip(42)//skip the possible vacuum header pages.
                 .limit(size)
+                //.peek(v-> System.out.println(v.getValue().getText()+" from "+v.getValue().getHref()))
                 .map(v -> new Chapter(v.getValue().getHref(), v.getKey(), v.getValue().getText(), path))
                 .peek(v -> v.download(exec))
                 .collect(Collectors.toList())//join
                 .stream()
-                .map(Chapter::getData)
+                //do not process
+                .map(Chapter::getRaw)
+                .peek(v->Utility.log("get one raw"))
+                .map(v->{
+                    byte[] rtn;
+                    try {
+                        rtn=v.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException();
+                    }
+                    return rtn;
+                })
+//                //and then process
+//                .map(Chapter::getData)
+//                //.peek(v-> Arrays.stream(v).forEach(System.out::println))
                 .mapToLong(v -> v.length)
                 .sum();
-        //exec.shutdown();//need to be shutdown manually.
+
+        exec.shutdown();//need to be shutdown manually.
         t.report();
         System.out.println(cnt+" lines are read.");
     }
@@ -107,7 +126,7 @@ public class Tester {
         t.report();
 
         t.resume("download");
-        byte[] raw=Utility.download("http://www.fhxiaoshuo.com/read/67/67220/16144874.shtml");
+        byte[] raw=Utility.download("http://www.biqudao.com/bqge1081/2431001.html");
         t.report();
 
         t.resume("clean");
