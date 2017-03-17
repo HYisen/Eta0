@@ -28,6 +28,10 @@ public class Config {
         this.path = path;
     }
 
+    public Map<String, String> getData() {
+        return data;
+    }
+
     public String get(String key){
         return data.get(key);
     }
@@ -37,6 +41,7 @@ public class Config {
     }
 
     public boolean save(){
+        //data.forEach((k,v)-> System.out.println(k+"="+v));
         try {
             Gson gson=new GsonBuilder().setPrettyPrinting().create();
             Files.deleteIfExists(path);
@@ -53,6 +58,7 @@ public class Config {
         try {
             Gson gson=new GsonBuilder().setPrettyPrinting().create();
             data=gson.fromJson(new String(Files.readAllBytes(path)),new TypeToken<Map<String,String>>(){}.getType());
+            //data.forEach((k,v)-> System.out.println(k+"="+v));
             return true;
         } catch (IOException e) {
             e.printStackTrace();

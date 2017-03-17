@@ -5,22 +5,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import net.alexhyisen.eta.model.Book;
-import net.alexhyisen.eta.model.Config;
-import net.alexhyisen.eta.model.Source;
-import net.alexhyisen.eta.model.Utility;
-import net.alexhyisen.eta.model.mailer.Mail;
-import net.alexhyisen.eta.model.mailer.MailService;
-
-import java.io.IOException;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/fxml/main.fxml"));
         primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 300, 275));
+        primaryStage.setScene(new Scene(root, 960, 540));
         primaryStage.show();
     }
 

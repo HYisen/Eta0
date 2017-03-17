@@ -14,6 +14,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
+import java.util.stream.IntStream;
 
 /**
  * Created by Alex on 2017/2/14.
@@ -105,6 +106,10 @@ public class Utility {
 
     public static void log(String msg){
         System.out.println(LocalTime.now()+" "+msg);
+    }
+
+    public static IntStream revRange(int from, int to){
+        return IntStream.range(to,from).map(i->from-1-(i-to));
     }
 
     private static Instant record=null;
