@@ -1,6 +1,7 @@
 package net.alexhyisen.eta.view;
 
 import com.sun.javafx.collections.ObservableListWrapper;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,30 +23,24 @@ public class Controller{
     private Source source=new Source();
     private Logger logger;
 
-    @FXML private TableView<MapItem> configTableView;
+    @FXML private TableView<Map.Entry<String,String>> configTableView;
     @FXML private Label msgLabel;
 
     private void refreshConfigTableView(){
-        TableColumn<MapItem, String> keyColumn = new TableColumn<>("key");
-        keyColumn.setCellValueFactory(param -> param.getValue().keyProperty());
-        keyColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        keyColumn.setOnEditCommit(event -> event.getRowValue().setKey(event.getNewValue()));
-        keyColumn.setEditable(true);
-        TableColumn<MapItem, String> valueColumn = new TableColumn<>("value");
-        valueColumn.setCellValueFactory(new PropertyValueFactory<>("value"));
+        TableColumn<Map.Entry<String,String>, String> keyColumn = new TableColumn<>("key");
+        keyColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getKey()));
+
+        TableColumn<Map.Entry<String,String>, String> valueColumn = new TableColumn<>("value");
+        valueColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getValue()));
         valueColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        valueColumn.setOnEditCommit(event -> event.getRowValue().setValue(event.getNewValue()));
+        valueColumn.setOnEditCommit(event -> config.put(event.getRowValue().getKey(),event.getNewValue()));
         valueColumn.setEditable(true);
+
         //noinspection unchecked
         configTableView.getColumns().setAll(keyColumn,valueColumn);
 
-        ObservableList<MapItem> data=FXCollections.observableArrayList();
-        config.getData().entrySet().stream()
-                .map(v->new MapItem(config.getData(),v.getKey(),v.getValue()))
-                .forEach(data::add);
-        System.out.println("size="+data.size());
-        configTableView.setItems(data);
-        configTableView.getItems().forEach(v-> System.out.println(v.getKey()+" = "+v.getValue()));
+        configTableView.setItems(FXCollections.observableArrayList(config.getData().entrySet()));
+
         configTableView.setEditable(true);
     }
 
