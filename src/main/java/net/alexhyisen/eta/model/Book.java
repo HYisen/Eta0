@@ -76,6 +76,13 @@ public class Book {
         return chapters;
     }
 
+    public boolean isCached() {
+        return cached;
+    }
+    public boolean isOpened() {
+        return chapters!=null;
+    }
+
     //What's the difference between open() and read()?
     //You open a book first and then get its index, later can you read the chapters.
     //To make it easier, open() init index & chapters, while read() preload chapters' data

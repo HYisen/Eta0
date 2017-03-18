@@ -1,31 +1,42 @@
 package net.alexhyisen.eta.view;
 
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import net.alexhyisen.eta.model.Book;
+import net.alexhyisen.eta.model.Chapter;
 import net.alexhyisen.eta.model.Config;
 import net.alexhyisen.eta.model.Source;
 
-import javafx.scene.control.TableView;
-
 import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 public class Controller{
-    private Config config=new Config();
-    private Source source=new Source();
+    private Config config;
+    private Source source;
     private Logger logger;
 
+    private ObservableList<Book> data;
+
+    @FXML private Label msgLabel;
     @FXML private TableView<Map.Entry<String,String>> configTableView;
     @FXML private TableView<Book> sourceTableView;
-    @FXML private Label msgLabel;
+    @FXML private TableView<Book> bookTableView;
+    @FXML private TreeTableView<Chapter> chapterTreeTableView;
 
     private void initConfigTableView(){
         TableColumn<Map.Entry<String,String>, String> keyColumn = new TableColumn<>("key");
@@ -43,13 +54,9 @@ public class Controller{
         configTableView.setEditable(true);
     }
 
-    private void refreshConfigTableView(){
-        configTableView.setItems(FXCollections.observableArrayList(config.getData().entrySet()));
-    }
-
-    private TableColumn<Book, String> generateColumn(String property, EventHandler<TableColumn.CellEditEvent<Book, String>> handler){
-        TableColumn<Book, String> col=new TableColumn<>(property);
-        col.setCellValueFactory(new PropertyValueFactory<>(property));
+    private static TableColumn<Book, String>
+    generateBookColumn(String property, EventHandler<TableColumn.CellEditEvent<Book, String>> handler){
+        TableColumn<Book, String> col=generatePropertyColumn(property);
         col.setCellFactory(TextFieldTableCell.forTableColumn());
         col.setOnEditCommit(handler);
         col.setEditable(true);
@@ -59,23 +66,65 @@ public class Controller{
     private void initSourceTableView(){
         //noinspection unchecked
         sourceTableView.getColumns().setAll(
-                generateColumn("name",event -> event.getRowValue().setName(event.getNewValue())),
-                generateColumn("path",event -> event.getRowValue().setPath(event.getNewValue())),
-                generateColumn("source",event -> event.getRowValue().setSource(event.getNewValue()))
+                generateBookColumn("name", event -> event.getRowValue().setName(event.getNewValue())),
+                generateBookColumn("path", event -> event.getRowValue().setPath(event.getNewValue())),
+                generateBookColumn("source", event -> event.getRowValue().setSource(event.getNewValue()))
         );
 
         sourceTableView.setEditable(true);
+
+        sourceTableView.setItems(data);
     }
 
-    private void refreshSourceTableView(){
-        sourceTableView.setItems(FXCollections.observableArrayList(source.getData()));
+    private static <S,T> TableColumn<S,T> generatePropertyColumn(String property){
+        TableColumn<S,T> col= new TableColumn<>(property);
+        col.setCellValueFactory(new PropertyValueFactory<>(property));
+        return col;
+    }
+
+    private void initBookTableView(){
+        //noinspection unchecked
+        bookTableView.getColumns().setAll(
+                Controller.<Book,String>generatePropertyColumn("name"),
+                Controller.<Book,Boolean>generatePropertyColumn("opened"),
+                Controller.<Book,Boolean>generatePropertyColumn("cached")
+        );
+        //Clarity of generic type is a fortune from C++,
+        //despite the fact that the type erasure implement in Java made it worthless.
+
+        bookTableView.setItems(data);
+    }
+
+    //As usually TreeItem can not set its column width properly.
+    private static <S,T> TreeTableColumn<S,T> generatePropertyTreeColumn(String property,double width){
+        TreeTableColumn<S,T> col= new TreeTableColumn<>(property);
+        col.setCellValueFactory(new TreeItemPropertyValueFactory<>(property));
+        col.setPrefWidth(width);
+        return col;
+    }
+
+    private void initChapterTreeTableView(){
+        //noinspection unchecked
+        chapterTreeTableView.getColumns().setAll(
+                generatePropertyTreeColumn("code",100),
+                generatePropertyTreeColumn("name",400),
+                generatePropertyTreeColumn("cached",50)
+        );
+        chapterTreeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
     @FXML private void initialize(){
+        config=new Config();
+        source=new Source();
+
+        data=FXCollections.observableArrayList();
+
         logger=new Logger(msgLabel);
 
         initConfigTableView();
         initSourceTableView();
+        initBookTableView();
+        initChapterTreeTableView();
 
         handleLoadConfigButtonAction();
         handleLoadSourceButtonAction();
@@ -89,18 +138,20 @@ public class Controller{
     @FXML protected void handleLoadConfigButtonAction(){
         logger.push("load config");
         config.load();
-        refreshConfigTableView();
+        configTableView.setItems(FXCollections.observableArrayList(config.getData().entrySet()));
     }
 
     @FXML protected void handleSaveSourceButtonAction(){
         logger.push("save source");
+        source.setData(data.stream().collect(Collectors.toList()));
         source.save();
     }
 
     @FXML protected void handleLoadSourceButtonAction(){
         logger.push("load source");
         source.load();
-        refreshSourceTableView();
+        data.clear();
+        data.addAll(source.getData());
     }
 
     @FXML protected void handleAppendSourceButtonAction(){
@@ -112,8 +163,46 @@ public class Controller{
 
     @FXML protected void handleDeleteSourceButtonAction(){
         logger.push("delete source");
-        Book book=sourceTableView.getFocusModel().getFocusedItem();
+        Book book=sourceTableView.getSelectionModel().getSelectedItem();
         source.getData().remove(book);
         sourceTableView.getItems().remove(book);
+    }
+
+    //I don't use synchronize() because the queue of open tasks is meaningless,
+    //as data that would not ever have a chance to be showed needn't to be created.
+    private static AtomicBoolean isOpening=new AtomicBoolean(false);
+    //Under most circumstance, boolean is always atomic, just in case of extreme condition.
+    @FXML protected void handleOpenButtonAction(){
+        if (isOpening.getAndSet(true)) {
+            logger.push("reject because another opening is in process");
+        } else {
+            Book book=bookTableView.getSelectionModel().getSelectedItem();
+            logger.push("open Book "+book.getName());
+            TreeItem<Chapter> root=new TreeItem<>(new Chapter("",0,book.getName(),""));
+            chapterTreeTableView.setRoot(root);
+
+            CompletableFuture.runAsync(() -> {
+                book.open();
+                book.getChapters().stream()
+                        .map(TreeItem::new)
+                        .forEach(root.getChildren()::add);
+                chapterTreeTableView.getRoot().setExpanded(true);
+                bookTableView.refresh();//need to force refresh so that status in isOpened column would turn true
+                isOpening.set(false);
+            });
+        }
+    }
+
+    @FXML protected void handleReadButtonAction(){
+        bookTableView.getSelectionModel().getSelectedItems().forEach(v->v.read(20));
+        bookTableView.refresh();
+    }
+
+    @FXML protected void handleMailButtonAction(){
+
+    }
+
+    @FXML protected void handleViewButtonAction(){
+
     }
 }
