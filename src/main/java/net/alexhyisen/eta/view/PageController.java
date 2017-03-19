@@ -37,6 +37,7 @@ public class PageController{
         codeLabel.setText(String.valueOf(chapter.getCode()));
         bookLabel.setText(book.getName());
         chapterLabel.setText(chapter.getName());
+        armButton();
 
         dataTextArea.setText(Arrays.stream(chapter.getData())
                 .map(v->"　　"+v+"\n")//2 GBK spaces work, it seemed that several spaces in ASCII do not exactly match.
