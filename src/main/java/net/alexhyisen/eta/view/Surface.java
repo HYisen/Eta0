@@ -1,5 +1,7 @@
 package net.alexhyisen.eta.view;
 
+import javafx.application.Application;
+import javafx.stage.Stage;
 import net.alexhyisen.eta.model.*;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
@@ -19,6 +21,8 @@ public class Surface {
         System.out.println("usage:");
         System.out.println("-a --auto Auto Mode");
         System.out.println("-c --cli  open Command Line Interface");
+        System.out.println("-g --gui  open Graphical User Interface");
+        System.out.println("-h --help show the instruction");
     }
     private static void runAutoMode(){
         System.out.println("Auto Mode");
@@ -185,13 +189,22 @@ public class Surface {
 
     }
 
+    private static void runGUI(){
+        Application.launch(MainApp.class);
+    }
+
     public static void main(String[] args) {
         if(args.length==0){
             showInstruction();
+            runGUI();
         }else if(args[0].equals("-a")||args[0].equals("--auto")){
             runAutoMode();
         }else if(args[0].equals("-c")||args[0].equals("--cli")){
             runCLI();
+        }else if(args[0].equals("-g")||args[0].equals("--gui")){
+            runGUI();
+        }else if(args[0].equals("-h")||args[0].equals("--help")){
+            showInstruction();
         }
     }
 }
