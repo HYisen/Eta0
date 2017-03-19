@@ -24,18 +24,25 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class Controller{
+public class MainController {
+    private MainApp mainApp;
+
     private Config config;
     private Source source;
     private Logger logger;
 
     private ObservableList<Book> data;
+    private Book currentBook;
 
     @FXML private Label msgLabel;
     @FXML private TableView<Map.Entry<String,String>> configTableView;
     @FXML private TableView<Book> sourceTableView;
     @FXML private TableView<Book> bookTableView;
     @FXML private TreeTableView<Chapter> chapterTreeTableView;
+
+    public void setMainApp(MainApp mainApp) {
+        this.mainApp = mainApp;
+    }
 
     private void initConfigTableView(){
         TableColumn<Map.Entry<String,String>, String> keyColumn = new TableColumn<>("key");
@@ -84,9 +91,9 @@ public class Controller{
     private void initBookTableView(){
         //noinspection unchecked
         bookTableView.getColumns().setAll(
-                Controller.<Book,String>generatePropertyColumn("name"),
-                Controller.<Book,Boolean>generatePropertyColumn("opened"),
-                Controller.<Book,Boolean>generatePropertyColumn("cached")
+                MainController.<Book,String>generatePropertyColumn("name"),
+                MainController.<Book,Boolean>generatePropertyColumn("opened"),
+                MainController.<Book,Boolean>generatePropertyColumn("cached")
         );
         //Clarity of generic type is a fortune from C++,
         //despite the fact that the type erasure implement in Java made it worthless.
@@ -193,8 +200,12 @@ public class Controller{
         orig.getChapters().stream()
                 .map(TreeItem::new)
                 .forEach(root.getChildren()::add);
+
         chapterTreeTableView.getRoot().setExpanded(true);
+
         bookTableView.refresh();//need to force refresh so that status in isOpened column would turn true
+
+        currentBook =orig;
     }
 
     private void checkSelectedBookThenOperateThenShow(Consumer<Book> operation, String actionName){
@@ -219,6 +230,13 @@ public class Controller{
     @FXML protected void handleViewChapterButtonAction(){
         chapterTreeTableView.getSelectionModel().getSelectedItems().stream()
                 .map(TreeItem::getValue)
+                .peek(v->{
+                    try {
+                        mainApp.showPage(currentBook,v);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                })
                 .map(v->"chapter "+v.getName()+" is viewed")
                 .forEach(logger::push);
     }
@@ -234,7 +252,7 @@ public class Controller{
         MailService ms=new MailService(config);
         chapterTreeTableView.getSelectionModel().getSelectedItems().stream()
                 .map(TreeItem::getValue)
-                .map(v->new Mail(config,chapterTreeTableView.getRoot().getValue().getName(),v))
+                .map(v->new Mail(config, currentBook.getName(),v))
                 .forEach(mail -> {
                     try {
                         ms.send(mail);

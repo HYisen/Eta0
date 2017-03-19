@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="540.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.alexhyisen.eta.view.Controller">
+<BorderPane prefHeight="540.0" prefWidth="960.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.alexhyisen.eta.view.MainController">
     <bottom>
         <Label id="msgLabel" fx:id="msgLabel" text="info" BorderPane.alignment="CENTER">
          <BorderPane.margin>
