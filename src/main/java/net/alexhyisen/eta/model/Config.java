@@ -40,7 +40,7 @@ public class Config {
         return data.put(key, value);
     }
 
-    public boolean save(){
+    public boolean save(Path path){
         //data.forEach((k,v)-> System.out.println(k+"="+v));
         try {
             Gson gson=new GsonBuilder().setPrettyPrinting().create();
@@ -53,7 +53,11 @@ public class Config {
         return false;
     }
 
-    public boolean load(){
+    public boolean save(){
+        return save(path);
+    }
+
+    public boolean load(Path path){
         data=new LinkedHashMap<>();//I want to keep the config content in insert order
         try {
             Gson gson=new GsonBuilder().setPrettyPrinting().create();
@@ -64,5 +68,9 @@ public class Config {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public boolean load(){
+        return load(path);
     }
 }

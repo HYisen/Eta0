@@ -17,8 +17,12 @@ import net.alexhyisen.eta.model.Source;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -29,13 +33,18 @@ public class MainController {
 
     private Config config;
     private Source source;
+
     private Logger logger;
 
     private ObservableList<Book> data;
     private Book currentBook;
 
     @FXML private Label msgLabel;
+    @FXML private TextField configPathTextField;
+    @FXML private TextField configNameTextField;
     @FXML private TableView<Map.Entry<String,String>> configTableView;
+    @FXML private TextField sourcePathTextField;
+    @FXML private TextField sourceNameTextField;
     @FXML private TableView<Book> sourceTableView;
     @FXML private TableView<Book> bookTableView;
     @FXML private TreeTableView<Chapter> chapterTreeTableView;
@@ -120,6 +129,17 @@ public class MainController {
         chapterTreeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
+    private Path getFile(TextField pathTextField,TextField nameTextField){
+        return Paths.get(pathTextField.getText(),nameTextField.getText());
+    }
+
+    private void setFile(File orig,TextField pathTextField,TextField nameTextField){
+        if(orig!=null){
+            pathTextField.setText(orig.getParent());
+            nameTextField.setText(orig.getName());
+        }
+    }
+
     @FXML private void initialize(){
         config=new Config();
         source=new Source();
@@ -133,30 +153,46 @@ public class MainController {
         initBookTableView();
         initChapterTreeTableView();
 
+        //initTextFields
+        Config baseConfig=new Config();
+        baseConfig.load();
+        String lastConfig=Optional.ofNullable(baseConfig.get("lastConfig")).orElse(".\\config");
+        String lastSource=Optional.ofNullable(baseConfig.get("lastSource")).orElse(".\\source");
+        setFile(Paths.get(lastConfig).toAbsolutePath().toFile(), configPathTextField,configNameTextField);
+        setFile(Paths.get(lastSource).toAbsolutePath().toFile(), sourcePathTextField,sourceNameTextField);
+
         handleLoadConfigButtonAction();
         handleLoadSourceButtonAction();
     }
 
+    @FXML protected void handleOpenConfigButtonAction(){
+        setFile(mainApp.openFile("Select Config"),configPathTextField,configNameTextField);
+    }
+
     @FXML protected void handleSaveConfigButtonAction(){
         logger.push("save config");
-        config.save();
+        config.save(getFile(configPathTextField,configNameTextField));
     }
 
     @FXML protected void handleLoadConfigButtonAction(){
         logger.push("load config");
-        config.load();
+        config.load(getFile(configPathTextField,configNameTextField));
         configTableView.setItems(FXCollections.observableArrayList(config.getData().entrySet()));
+    }
+
+    @FXML protected void handleOpenSourceButtonAction(){
+        setFile(mainApp.openFile("Select Source"),sourcePathTextField,sourceNameTextField);
     }
 
     @FXML protected void handleSaveSourceButtonAction(){
         logger.push("save source");
         source.setData(data.stream().collect(Collectors.toList()));
-        source.save();
+        source.save(getFile(sourcePathTextField,sourceNameTextField));
     }
 
     @FXML protected void handleLoadSourceButtonAction(){
         logger.push("load source");
-        source.load();
+        source.load(getFile(sourcePathTextField,sourceNameTextField));
         data.clear();
         data.addAll(source.getData());
     }
@@ -262,5 +298,13 @@ public class MainController {
                         logger.push("failed to mail "+mail.getSubject());
                     }
                 });
+    }
+
+    void handleCloseEvent(){
+        Config baseConfig=new Config();
+        baseConfig.load();
+        baseConfig.put("lastConfig",getFile(configPathTextField,configNameTextField).toString());
+        baseConfig.put("lastSource",getFile(sourcePathTextField,sourceNameTextField).toString());
+        baseConfig.save();
     }
 }

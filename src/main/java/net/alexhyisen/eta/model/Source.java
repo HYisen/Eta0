@@ -51,23 +51,25 @@ public class Source {
         }
     }
 
-    public void load(Path path){
+    public boolean load(Path path){
         try {
             JAXBContext context=JAXBContext.newInstance(Wrapper.class);
             Unmarshaller um=context.createUnmarshaller();
 
             Wrapper wrapper=(Wrapper)um.unmarshal(path.toFile());
             data =wrapper.getBooks();
+            return true;
         } catch (JAXBException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
-    public void load(){
-        load(path);
+    public boolean load(){
+        return load(path);
     }
 
-    public void save(Path path){
+    public boolean save(Path path){
         try {
             JAXBContext context=JAXBContext.newInstance(Wrapper.class);
             Marshaller m=context.createMarshaller();
@@ -77,13 +79,16 @@ public class Source {
             wrapper.setBooks(data);
 
             m.marshal(wrapper, path.toFile());
+
+            return true;
         } catch (JAXBException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
-    public void save(){
-        save(path);
+    public boolean save(){
+        return save(path);
     }
 }
 

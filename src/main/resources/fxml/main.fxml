@@ -59,7 +59,8 @@
                                         <Label alignment="CENTER" prefWidth="40.0" text="path" />
                                         <TextField id="configPathTextField" fx:id="sourcePathTextField" prefWidth="450.0" promptText="input the path of source file there" />
                                         <Label id="configNameLabel" alignment="CENTER" prefWidth="40.0" text="name" />
-                                        <TextField id="configNameTextField" fx:id="sourceNameTextField" prefWidth="260.0" promptText="input source filename" />
+                                        <TextField id="configNameTextField" fx:id="sourceNameTextField" prefWidth="200.0" promptText="input source filename" />
+                              <Button id="sourceOpenButton" layoutX="780.0" layoutY="10.0" mnemonicParsing="false" onAction="#handleOpenSourceButtonAction" prefWidth="50.0" text="Open" />
                                         <Button id="sourceLoadButton" mnemonicParsing="false" onAction="#handleLoadSourceButtonAction" prefWidth="50.0" text="Load" />
                                         <Button id="sourceSaveButton" mnemonicParsing="false" onAction="#handleSaveSourceButtonAction" prefWidth="50.0" text="Save" />
                                     </children>
@@ -96,7 +97,8 @@
                                <Label alignment="CENTER" prefWidth="40.0" text="path" />
                                <TextField id="configPathTextField" fx:id="configPathTextField" prefWidth="450.0" promptText="input the path of config file there" />
                                <Label id="configNameLabel" alignment="CENTER" prefWidth="40.0" text="name" />
-                               <TextField id="configNameTextField" fx:id="configNameTextField" prefColumnCount="15" prefWidth="260.0" promptText="input config filename" />
+                               <TextField id="configNameTextField" fx:id="configNameTextField" prefColumnCount="15" prefWidth="200.0" promptText="input config filename" />
+                              <Button id="configOpenButton" layoutX="780.0" layoutY="10.0" mnemonicParsing="false" onAction="#handleOpenConfigButtonAction" prefWidth="50.0" text="Open" />
                                <Button id="configLoadButton" mnemonicParsing="false" onAction="#handleLoadConfigButtonAction" prefWidth="50.0" text="Load" />
                                <Button id="configSaveButton" mnemonicParsing="false" onAction="#handleSaveConfigButtonAction" prefWidth="50.0" text="Save" />
                            </children>
