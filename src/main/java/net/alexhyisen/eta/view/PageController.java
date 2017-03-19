@@ -39,7 +39,7 @@ public class PageController{
         chapterLabel.setText(chapter.getName());
 
         dataTextArea.setText(Arrays.stream(chapter.getData())
-                .map(v->"  "+v+"\n")
+                .map(v->"    "+v+"\n")
                 .collect(Collectors.joining()));
     }
 
