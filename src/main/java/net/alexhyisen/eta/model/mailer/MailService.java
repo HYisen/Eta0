@@ -29,6 +29,13 @@ public class MailService {
         this.password = password;
     }
 
+    public MailService(Config config) {
+        this.client = config.get("client");
+        this.server = config.get("server");
+        this.username = config.get("username");
+        this.password = config.get("password");
+    }
+
     public void setClient(String client) {
         this.client = client;
     }

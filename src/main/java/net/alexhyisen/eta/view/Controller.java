@@ -1,9 +1,8 @@
 package net.alexhyisen.eta.view;
 
-import javafx.beans.InvalidationListener;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -15,14 +14,14 @@ import net.alexhyisen.eta.model.Book;
 import net.alexhyisen.eta.model.Chapter;
 import net.alexhyisen.eta.model.Config;
 import net.alexhyisen.eta.model.Source;
+import net.alexhyisen.eta.model.mailer.Mail;
+import net.alexhyisen.eta.model.mailer.MailService;
 
-import java.util.Collections;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class Controller{
@@ -107,8 +106,9 @@ public class Controller{
         //noinspection unchecked
         chapterTreeTableView.getColumns().setAll(
                 generatePropertyTreeColumn("code",100),
-                generatePropertyTreeColumn("name",400),
-                generatePropertyTreeColumn("cached",50)
+                generatePropertyTreeColumn("name",350),
+                generatePropertyTreeColumn("cached",50),
+                generatePropertyTreeColumn("loaded",50)
         );
         chapterTreeTableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
@@ -172,37 +172,77 @@ public class Controller{
     //as data that would not ever have a chance to be showed needn't to be created.
     private static AtomicBoolean isOpening=new AtomicBoolean(false);
     //Under most circumstance, boolean is always atomic, just in case of extreme condition.
-    @FXML protected void handleOpenButtonAction(){
+    @FXML protected void handleOpenBookButtonAction(){
         if (isOpening.getAndSet(true)) {
             logger.push("reject because another opening is in process");
         } else {
             Book book=bookTableView.getSelectionModel().getSelectedItem();
             logger.push("open Book "+book.getName());
-            TreeItem<Chapter> root=new TreeItem<>(new Chapter("",0,book.getName(),""));
-            chapterTreeTableView.setRoot(root);
 
-            CompletableFuture.runAsync(() -> {
-                book.open();
-                book.getChapters().stream()
-                        .map(TreeItem::new)
-                        .forEach(root.getChildren()::add);
-                chapterTreeTableView.getRoot().setExpanded(true);
-                bookTableView.refresh();//need to force refresh so that status in isOpened column would turn true
-                isOpening.set(false);
-            });
+            CompletableFuture
+                    .runAsync(book::open) //release the most time consuming procedure to avoid block
+                    .thenRun(() -> isOpening.set(false))
+                    .thenRun(() -> Platform.runLater(() -> updateChapterTreeTableView(book)));
         }
     }
 
-    @FXML protected void handleReadButtonAction(){
-        bookTableView.getSelectionModel().getSelectedItems().forEach(v->v.read(20));
-        bookTableView.refresh();
+    private void updateChapterTreeTableView(Book orig){
+        TreeItem<Chapter> root=new TreeItem<>(new Chapter("",0,orig.getName(),""));
+        chapterTreeTableView.setRoot(root);
+
+        orig.getChapters().stream()
+                .map(TreeItem::new)
+                .forEach(root.getChildren()::add);
+        chapterTreeTableView.getRoot().setExpanded(true);
+        bookTableView.refresh();//need to force refresh so that status in isOpened column would turn true
     }
 
-    @FXML protected void handleMailButtonAction(){
-
+    private void checkSelectedBookThenOperateThenShow(Consumer<Book> operation, String actionName){
+        Book book=bookTableView.getSelectionModel().getSelectedItem();
+        if(book.isOpened()){
+            logger.push(actionName+" Book "+book.getName());
+            operation.accept(book);
+            updateChapterTreeTableView(book);
+        }else {
+            logger.push("need to be opened before "+actionName+"ing");
+        }
     }
 
-    @FXML protected void handleViewButtonAction(){
+    @FXML protected void handleReadBookButtonAction(){
+        checkSelectedBookThenOperateThenShow(book -> book.read(20), "read");
+    }
 
+    @FXML protected void handleShowBookButtonAction(){
+        checkSelectedBookThenOperateThenShow(book -> {} ,"show");
+    }
+
+    @FXML protected void handleViewChapterButtonAction(){
+        chapterTreeTableView.getSelectionModel().getSelectedItems().stream()
+                .map(TreeItem::getValue)
+                .map(v->"chapter "+v.getName()+" is viewed")
+                .forEach(logger::push);
+    }
+
+    @FXML protected void handleLoadChapterButtonAction(){
+        chapterTreeTableView.getSelectionModel().getSelectedItems().stream()
+                .map(TreeItem::getValue)
+                .peek(v->logger.push("load "+v.getName()))
+                .forEach(Chapter::download);
+    }
+
+    @FXML protected void handleMailChapterButtonAction(){
+        MailService ms=new MailService(config);
+        chapterTreeTableView.getSelectionModel().getSelectedItems().stream()
+                .map(TreeItem::getValue)
+                .map(v->new Mail(config,chapterTreeTableView.getRoot().getValue().getName(),v))
+                .forEach(mail -> {
+                    try {
+                        ms.send(mail);
+                        logger.push("succeed to mail "+mail.getSubject());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        logger.push("failed to mail "+mail.getSubject());
+                    }
+                });
     }
 }

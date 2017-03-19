@@ -30,25 +30,16 @@ public class Surface {
 
         Config config=new Config();
         config.load();
-        MailService ms=new MailService(
-                config.get("client"),
-                config.get("server"),
-                config.get("username"),
-                config.get("password")
-        );
+        MailService ms=new MailService(config);
         Source source=new Source();
         source.load();
         for(Book book:source.getData()){
             book.read(20);
             book.save().forEach(chapter->{
-                String subject=String.format("《%s》 %s",book.getName(),chapter.getName());
-                Mail mail=new Mail(
-                        config.get("senderName"),config.get("senderAddr"),
-                        config.get("recipientName"),config.get("recipientAddr"),
-                        subject,chapter.getData());
+                Mail mail=new Mail(config,book.getName(),chapter);
                 try {
                     ms.send(mail);
-                    Utility.log("transmitted "+subject);
+                    Utility.log("transmitted "+mail.getSubject());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

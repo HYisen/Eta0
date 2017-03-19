@@ -283,8 +283,16 @@ public class Chapter {
         }
     }
 
+    //cached means whether the data has already been downloaded and stored in local disk,
+    //which also implies that it has been mailed to user.
     public boolean isCached() {
         return cached;
+    }
+
+    //loaded only indicate whether you can get the data offline rather than online,
+    //which can not only occurred by a file in local disk, but also a temp in memory.
+    public boolean isLoaded(){
+        return isCached()||raw!=null;
     }
 
     public String getPath() {
