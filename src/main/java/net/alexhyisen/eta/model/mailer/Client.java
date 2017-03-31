@@ -1,6 +1,8 @@
 package net.alexhyisen.eta.model.mailer;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by Alex on 2017/3/5.
@@ -10,11 +12,11 @@ interface Client {
     void link(String host, int port) throws IOException;
     void send(String content);
     String receive() throws IOException;
-    default String receive(int times) throws IOException {
-        StringBuilder sb=new StringBuilder();
+    default List<String> receive(int times) throws IOException {
+        List<String> rtn=new LinkedList<>();
         for(int k=0;k!=times;k++){
-            sb.append(receive()).append('\n');
+            rtn.add(receive());
         }
-        return sb.toString();
+        return rtn;
     }
 }
