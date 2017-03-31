@@ -57,17 +57,15 @@ public class PageController{
                 (1,96,12);
         svf.setConverter(new IntegerStringConverter());
         fontSpinner.setValueFactory(svf);
-        fontSpinner.getEditor().setOnAction(event -> {
-            String text=fontSpinner.getEditor().getText();
-            SpinnerValueFactory<Integer> valueFactory = fontSpinner.getValueFactory();
-            valueFactory.setValue(valueFactory.getConverter().fromString(text));
-            //Utility.log("switch font size to "+valueFactory.getValue());
-        });
-        fontSpinner.getValueFactory().valueProperty().addListener((observable, oldValue, newValue) -> {
+        //svf.getValue() is not the default font size that going to be. See later comment.
+        TextFormatter<Integer> formatter= new TextFormatter<>(svf.getConverter(), svf.getValue());
+        formatter.valueProperty().addListener((observable, oldValue, newValue) -> {
             //Utility.log("change font size from "+oldValue+" to "+newValue);
             dataTextArea.setFont(Font.font(newValue));
             config.put("fontSize",newValue.toString());
         });
+        fontSpinner.getEditor().setTextFormatter(formatter);
+        svf.valueProperty().bindBidirectional(formatter.valueProperty());
 
         //What if setValue to the oldValue?
         //It just doesn't change, which means the Listener would not be notified.
