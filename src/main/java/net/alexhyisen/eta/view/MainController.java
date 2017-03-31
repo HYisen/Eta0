@@ -218,10 +218,12 @@ public class MainController {
     private static AtomicBoolean isOpening=new AtomicBoolean(false);
     //Under most circumstance, boolean is always atomic, just in case of extreme condition.
     @FXML protected void handleOpenBookButtonAction(){
-        if (isOpening.getAndSet(true)) {
+        Book book=bookTableView.getSelectionModel().getSelectedItem();
+        if(book==null){
+            logger.push("one book must be selected to open");
+        }else if (isOpening.getAndSet(true)) {
             logger.push("reject because another opening is in process");
-        } else {
-            Book book=bookTableView.getSelectionModel().getSelectedItem();
+        }else {
             logger.push("open Book "+book.getName());
 
             CompletableFuture
@@ -247,14 +249,15 @@ public class MainController {
     }
 
     private void checkSelectedBookThenOperateThenShow(Consumer<Book> operation, String actionName){
-        Book book=bookTableView.getSelectionModel().getSelectedItem();
-        if(book.isOpened()){
-            logger.push(actionName+" Book "+book.getName());
-            operation.accept(book);
-            updateChapterTreeTableView(book);
-        }else {
-            logger.push("need to be opened before "+actionName+"ing");
-        }
+        bookTableView.getSelectionModel().getSelectedItems().forEach(book->{
+            if(book.isOpened()){
+                logger.push(actionName+" Book "+book.getName());
+                operation.accept(book);
+                updateChapterTreeTableView(book);
+            }else {
+                logger.push("need to be opened before "+actionName+"ing");
+            }
+        });
     }
 
     @FXML protected void handleReadBookButtonAction(){
