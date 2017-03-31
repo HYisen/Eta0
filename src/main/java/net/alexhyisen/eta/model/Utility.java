@@ -8,6 +8,7 @@ import org.htmlcleaner.TagNode;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -26,7 +27,9 @@ public class Utility {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         InputStream is = null;
         try {
-            is = new URL(url).openStream ();
+            URLConnection connection=new URL(url).openConnection();
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0");
+            is = connection.getInputStream();
             byte[] byteChunk = new byte[4096]; // Or whatever size you want to read in at a time.
             int n;
 
