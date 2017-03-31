@@ -10,10 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
-import net.alexhyisen.eta.model.Book;
-import net.alexhyisen.eta.model.Chapter;
-import net.alexhyisen.eta.model.Config;
-import net.alexhyisen.eta.model.Source;
+import net.alexhyisen.eta.model.*;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
 

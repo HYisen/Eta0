@@ -248,7 +248,10 @@ public class Chapter {
             } else {
                 Utility.log("load the online one");
                 if(raw==null){
+                    Utility.log("start downloading");
                     download();
+                }else {
+                    Utility.log("downloading is started");
                 }
                 try {
                     //If download failed, try again.
@@ -257,10 +260,13 @@ public class Chapter {
                         Utility.log("failed to download, try again.");
                         download();
                     }
+                    //at present, the very first Future.get() is the most time consuming procedure (~0.5s),
+                    //however, after the first get(), the following get() s to the same Future take little time.
+                    //Though deleting the not-null confirming, I can only delay, rather than remove the cost,
+                    //which is already testified, so I must accept the result as the burden of asynchronous schedule.
                     if(raw.get()==null){
                         throw new RuntimeException();
                     }
-
                     data=read(select(Utility.clean(raw.get())));
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
