@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -45,6 +46,10 @@ public class MainController {
     @FXML private TableView<Book> sourceTableView;
     @FXML private TableView<Book> bookTableView;
     @FXML private TreeTableView<Chapter> chapterTreeTableView;
+
+    public Config getConfig() {
+        return config;
+    }
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
@@ -183,7 +188,7 @@ public class MainController {
 
     @FXML protected void handleSaveSourceButtonAction(){
         logger.push("save source");
-        source.setData(data.stream().collect(Collectors.toList()));
+        source.setData(new ArrayList<>(data));
         source.save(getFile(sourcePathTextField,sourceNameTextField));
     }
 

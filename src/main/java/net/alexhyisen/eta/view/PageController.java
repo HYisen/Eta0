@@ -1,11 +1,15 @@
 package net.alexhyisen.eta.view;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.text.Font;
+import javafx.util.converter.IntegerStringConverter;
 import net.alexhyisen.eta.model.Book;
 import net.alexhyisen.eta.model.Chapter;
+import net.alexhyisen.eta.model.Config;
+import net.alexhyisen.eta.model.Utility;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +28,7 @@ public class PageController{
     @FXML private Label chapterLabel;
     @FXML private TextArea dataTextArea;
     @FXML private Button nextButton;
+    @FXML private Spinner<Integer> fontSpinner;
 
     public void setBook(Book book) {
         this.book = book;
@@ -42,6 +47,34 @@ public class PageController{
         dataTextArea.setText(Arrays.stream(chapter.getData())
                 .map(v->"　　"+v+"\n")//2 GBK spaces work, it seemed that several spaces in ASCII do not exactly match.
                 .collect(Collectors.joining()));
+    }
+
+    //We need to init Spinner outside explicitly to provide a Config.
+    void initSpinner(Config config){
+        Integer fontSize=Integer.valueOf(config.get("fontSize"));
+        fontSpinner.setEditable(true);
+        SpinnerValueFactory<Integer> svf= new SpinnerValueFactory.IntegerSpinnerValueFactory
+                (1,96,12);
+        svf.setConverter(new IntegerStringConverter());
+        fontSpinner.setValueFactory(svf);
+        fontSpinner.getEditor().setOnAction(event -> {
+            String text=fontSpinner.getEditor().getText();
+            SpinnerValueFactory<Integer> valueFactory = fontSpinner.getValueFactory();
+            valueFactory.setValue(valueFactory.getConverter().fromString(text));
+            //Utility.log("switch font size to "+valueFactory.getValue());
+        });
+        fontSpinner.getValueFactory().valueProperty().addListener((observable, oldValue, newValue) -> {
+            //Utility.log("change font size from "+oldValue+" to "+newValue);
+            dataTextArea.setFont(Font.font(newValue));
+            config.put("fontSize",newValue.toString());
+        });
+
+        //What if setValue to the oldValue?
+        //It just doesn't change, which means the Listener would not be notified.
+        //Therefore, if we set the initialValue of svf to fontSize,
+        //the code next line would not work properly.
+        fontSpinner.getValueFactory().setValue(fontSize);
+        //Utility.log("fontSize="+fontSize);
     }
 
     @FXML private void initialize(){

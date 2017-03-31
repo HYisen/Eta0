@@ -56,6 +56,7 @@ public class MainApp extends Application {
             PageController controller = loader.getController();
             controller.setBook(book);
             controller.setChapter(chapter);
+            controller.initSpinner(mainController.getConfig());
             controller.refresh();
 
             pageStage.show();
