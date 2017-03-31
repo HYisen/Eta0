@@ -277,11 +277,12 @@ public class MainController {
                 .forEach(logger::push);
     }
 
-    @FXML protected void handleLoadChapterButtonAction(){
+    @FXML protected void handleSaveChapterButtonAction(){
         chapterTreeTableView.getSelectionModel().getSelectedItems().stream()
                 .map(TreeItem::getValue)
-                .peek(v->logger.push("load "+v.getName()))
-                .forEach(Chapter::download);
+                .peek(Chapter::download)
+                .peek(Chapter::write)
+                .forEach(v->logger.push("save"+v.getName()));
     }
 
     @FXML protected void handleMailChapterButtonAction(){

@@ -34,7 +34,7 @@
                                         <Button layoutX="28.0" layoutY="10.0" mnemonicParsing="false" onAction="#handleReadBookButtonAction" prefWidth="50.0" text="Read" />
                               <Button layoutX="30.0" layoutY="194.0" mnemonicParsing="false" onAction="#handleShowBookButtonAction" prefWidth="50.0" text="Show" />
                                         <Separator prefWidth="200.0" />
-                              <Button layoutX="30.0" layoutY="238.0" mnemonicParsing="false" onAction="#handleLoadChapterButtonAction" prefWidth="50.0" text="Load" />
+                              <Button layoutX="30.0" layoutY="238.0" mnemonicParsing="false" onAction="#handleSaveChapterButtonAction" prefWidth="50.0" text="Save" />
                                         <Button layoutX="28.0" layoutY="43.0" mnemonicParsing="false" onAction="#handleViewChapterButtonAction" prefWidth="50.0" text="View" />
                                         <Button layoutX="25.0" layoutY="76.0" mnemonicParsing="false" onAction="#handleMailChapterButtonAction" prefWidth="50.0" text="Mail" />
                                     </children>
