@@ -70,57 +70,60 @@ public class MailService {
     }
 
     public boolean send(Mail mail) throws IOException {
-        Client client=new BasicClient(server,25);
+        try (Client client=new NettyClient()){
+            client.link(server,25);
 
-        //shake hand
-        client.receive();
-        client.send("EHLO "+ this.client);
-        client.receive(7);
+            //shake hand
+            client.receive();
+            client.send("EHLO "+ this.client);
+            client.receive(7);
 
-        //authentication
-        client.send("AUTH LOGIN");
-        client.receive();
-        client.send(new String(Base64.getEncoder().encode(username.getBytes())));
-        client.receive();
-        client.send(new String(Base64.getEncoder().encode(password.getBytes())));
-        if(!passCheckpoint(client.receive(),"235","Authentication successful")){
-            return false;
+            //authentication
+            client.send("AUTH LOGIN");
+            client.receive();
+            client.send(new String(Base64.getEncoder().encode(username.getBytes())));
+            client.receive();
+            client.send(new String(Base64.getEncoder().encode(password.getBytes())));
+            if(!passCheckpoint(client.receive(),"235","Authentication successful")){
+                return false;
+            }
+
+            //transmit mail envelope
+            client.send(String.format("MAIL FROM:<%s>",mail.getSenderAddr()));
+            passCheckpoint(client.receive(), "250", "Mail OK");
+            client.send(String.format("RCPT TO:<%s>",mail.getRecipientAddr()));
+            passCheckpoint(client.receive(), "250", "Mail OK");
+
+            //transmit mail content
+            client.send("DATA");
+            client.receive();
+            client.send("Date: "+
+                    ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
+            client.send(String.format("From: %s",
+                    composeIdentity(mail.getSenderName(),mail.getSenderAddr())));
+            client.send("Subject: "+mail.getSubject());
+            client.send(String.format("To: %s",
+                    composeIdentity(mail.getRecipientName(),mail.getRecipientAddr())));
+            client.send("");
+            for(String line:mail.getContent()){
+                client.send(INDENTATION+line);
+            }
+            client.send(".");
+            if(!passCheckpoint(client.receive(), "250", "Mail OK")){
+                return false;
+            }
+
+            //bye
+            client.send("QUIT");
+            return passCheckpoint(client.receive(), "221", "Bye");
         }
-
-        //transmit mail envelope
-        client.send(String.format("MAIL FROM:<%s>",mail.getSenderAddr()));
-        passCheckpoint(client.receive(), "250", "Mail OK");
-        client.send(String.format("RCPT TO:<%s>",mail.getRecipientAddr()));
-        passCheckpoint(client.receive(), "250", "Mail OK");
-
-        //transmit mail content
-        client.send("DATA");
-        client.receive();
-        client.send("Date: "+
-                ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
-        client.send(String.format("From: %s",
-                composeIdentity(mail.getSenderName(),mail.getSenderAddr())));
-        client.send("Subject: "+mail.getSubject());
-        client.send(String.format("To: %s",
-                composeIdentity(mail.getRecipientName(),mail.getRecipientAddr())));
-        client.send("");
-        for(String line:mail.getContent()){
-            client.send(INDENTATION+line);
-        }
-        client.send(".");
-        if(!passCheckpoint(client.receive(), "250", "Mail OK")){
-            return false;
-        }
-
-        //bye
-        client.send("QUIT");
-        return passCheckpoint(client.receive(), "221", "Bye");
     }
 
 
 
     public static void main(String[] args) throws IOException {
         Config config=new Config();
+        config.load();
 
         MailService ms=new MailService(
                 config.get("client"),

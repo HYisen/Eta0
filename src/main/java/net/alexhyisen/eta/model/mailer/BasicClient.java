@@ -11,6 +11,7 @@ import java.net.Socket;
  * BasicClient is a Client that use Java net infrastructure.
  */
 class BasicClient implements Client {
+    private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
 
@@ -23,7 +24,8 @@ class BasicClient implements Client {
 
     @Override
     public void link(String host, int port) throws IOException {
-        Socket socket = new Socket(host, port);
+        //System.out.println("linking "+host+" at "+port);
+        socket = new Socket(host, port);
         out=new PrintWriter(socket.getOutputStream(),true);
         in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
@@ -39,6 +41,14 @@ class BasicClient implements Client {
         String line=in.readLine();
         System.out.println("server: "+line);
         return line;
+    }
+
+    @Override
+    public void close() throws IOException {
+        //out.close();
+        //in.close();
+        //Stream from socket would automatically closed, no need to revoke implicitly.
+        socket.close();
     }
 
     public static void main(String[] args) throws IOException {
