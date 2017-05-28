@@ -19,11 +19,11 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Created by Alex on 2017/4/3.
  * A client based on Netty.
  */
-public class NettyClient implements Client {
+class NettyClient implements Client {
     private static class NettyClientHandler extends SimpleChannelInboundHandler<String>{
         private BlockingQueue<String> lines;
 
-        public NettyClientHandler(BlockingQueue<String> lines) {
+        NettyClientHandler(BlockingQueue<String> lines) {
             this.lines = lines;
         }
 

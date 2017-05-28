@@ -5,6 +5,7 @@ import javafx.stage.Stage;
 import net.alexhyisen.eta.model.*;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
+import net.alexhyisen.eta.model.server.PushService;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -19,10 +20,11 @@ import java.util.function.Predicate;
 public class Surface {
     private static void showInstruction(){
         System.out.println("usage:");
-        System.out.println("-a --auto Auto Mode");
-        System.out.println("-c --cli  open Command Line Interface");
-        System.out.println("-g --gui  open Graphical User Interface");
-        System.out.println("-h --help show the instruction");
+        System.out.println("-a --auto   Auto Mode");
+        System.out.println("-c --cli    open Command Line Interface");
+        System.out.println("-g --gui    open Graphical User Interface");
+        System.out.println("-s --server launch the server to offer service");
+        System.out.println("-h --help   show the instruction");
     }
     private static void runAutoMode(){
         System.out.println("Auto Mode");
@@ -193,6 +195,10 @@ public class Surface {
         Application.launch(MainApp.class);
     }
 
+    private static void runServerMode(){
+        new PushService().run();
+    }
+
     public static void main(String[] args) {
         if(args.length==0){
             showInstruction();
@@ -203,6 +209,8 @@ public class Surface {
             runCLI();
         }else if(args[0].equals("-g")||args[0].equals("--gui")){
             runGUI();
+        }else if(args[0].equals("-s")||args[0].equals("--server")){
+            runServerMode();
         }else if(args[0].equals("-h")||args[0].equals("--help")){
             showInstruction();
         }
