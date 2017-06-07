@@ -43,7 +43,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
         }
     }
 
-    private static final String TEXT_DELIMITER = "\n";
+    static final String TEXT_DELIMITER = "\n";
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
@@ -64,35 +64,15 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                             book.open();
                         }
                         Chapter chapter = book.getChapters().get(Integer.valueOf(args[1]));
-                        String title = book.getName() + " " + chapter.getName();
-                        System.out.println("get  " + title);
-                        String content = Arrays.stream(chapter.getData()).collect(Collectors.joining(TEXT_DELIMITER));
-                        ctx.writeAndFlush(new TextWebSocketFrame(title + TEXT_DELIMITER + content));
-                        System.out.println("send " + title);
+                        ctx.channel().writeAndFlush(chapter);
                     });
                     break;
                 case "ls":
                     if (".".equals(arg)) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("Books").append(TEXT_DELIMITER);
-                        for (int k = 0; k != data.size(); ++k) {
-                            sb.append(String.format("%d 《%s》", k, data.get(k).getName())).append(TEXT_DELIMITER);
-                        }
-                        ctx.writeAndFlush(new TextWebSocketFrame(sb.toString()));
+                        ctx.channel().writeAndFlush(data);
                     } else {
                         Book book = data.get(Integer.valueOf(arg));
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(String.format("Chapters in 《%s》",book.getName())).append(TEXT_DELIMITER);
-                        if (!book.isOpened()) {
-                            book.open();
-                        }
-                        for (int k = 0; k != book.getChapters().size(); ++k) {
-                            sb
-                                    .append(arg)
-                                    .append(String.format(".%d %s", k, book.getChapters().get(k).getName()))
-                                    .append(TEXT_DELIMITER);
-                        }
-                        ctx.writeAndFlush(new TextWebSocketFrame(sb.toString()));
+                        ctx.channel().writeAndFlush(book);
                     }
                     break;
                 default:

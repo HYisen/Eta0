@@ -53,7 +53,10 @@ class NettyServer {
                                 .addLast(new HttpRequestHandler("/ws"))
                                 .addLast(new CloseWebSocketFrameHandler(channelGroup))
                                 .addLast(new WebSocketServerProtocolHandler("/ws"))
-                                .addLast(new TextWebSocketFrameHandler(data,channelGroup));
+                                .addLast(new TextWebSocketFrameHandler(data, channelGroup))
+                                .addLast(new ChapterEncoder())
+                                .addLast(new BookEncoder())
+                                .addLast(new ShelfEncoder());
                     }
                 });
         return bootstrap.bind(address);
