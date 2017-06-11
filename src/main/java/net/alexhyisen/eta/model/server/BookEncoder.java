@@ -16,16 +16,19 @@ import static net.alexhyisen.eta.model.server.TextWebSocketFrameHandler.TEXT_DEL
 public class BookEncoder extends MessageToMessageEncoder<Book> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Book msg, List<Object> out) throws Exception {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Chapters in 《%s》",msg.getName())).append(TEXT_DELIMITER);
-        if (!msg.isOpened()) {
-            msg.open();
-        }
-        for (int k = 0; k != msg.getChapters().size(); ++k) {
-            sb
-                    .append(String.format("%d %s", k, msg.getChapters().get(k).getName()))
-                    .append(TEXT_DELIMITER);
-        }
-        out.add(new TextWebSocketFrame(sb.toString()));
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(String.format("Chapters in 《%s》", msg.getName())).append(TEXT_DELIMITER);
+//        if (!msg.isOpened()) {
+//            msg.open();
+//        }
+//        for (int k = 0; k != msg.getChapters().size(); ++k) {
+//            sb
+//                    .append(String.format("%d %s", k, msg.getChapters().get(k).getName()))
+//                    .append(TEXT_DELIMITER);
+//        }
+//        sb.append("\n");
+//        System.out.println("sending " + msg.getName());
+//        out.add(new TextWebSocketFrame(sb.toString()));
+        out.add(new TextWebSocketFrame(new Envelope(msg).toJson()));
     }
 }

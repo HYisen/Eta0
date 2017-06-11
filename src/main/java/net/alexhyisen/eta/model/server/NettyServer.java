@@ -18,6 +18,7 @@ import net.alexhyisen.eta.model.Book;
 import net.alexhyisen.eta.model.Source;
 
 import java.net.InetSocketAddress;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ class NettyServer {
 
     private void init() {
         Source source = new Source();
-        source.load();
+        source.load(Paths.get("sourceAll"));
         data = source.getData();
 //        data.forEach(Book::open);
 //        System.out.println("all books are opened.");

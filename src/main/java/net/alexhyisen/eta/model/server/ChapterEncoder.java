@@ -15,12 +15,15 @@ import static net.alexhyisen.eta.model.server.TextWebSocketFrameHandler.TEXT_DEL
  * Created by Alex on 2017/6/5.
  * encode Chapter to a TextWebSocketFrame to send.
  */
-public class ChapterEncoder extends MessageToMessageEncoder<Chapter>{
+public class ChapterEncoder extends MessageToMessageEncoder<Chapter> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Chapter msg, List<Object> out) throws Exception {
-        String title = msg.getName();
-        System.out.println("push  " + title);
-        String content = Arrays.stream(msg.getData()).collect(Collectors.joining(TEXT_DELIMITER));
-        out.add(new TextWebSocketFrame(title + TEXT_DELIMITER + content));
+//        String title = msg.getName();
+//        System.out.println("push  " + title);
+//        String content = Arrays.stream(msg.getData()).collect(Collectors.joining(TEXT_DELIMITER));
+//        content += "\n" + new Envelope(msg).toJson();
+//        content = title + TEXT_DELIMITER + content;
+
+        out.add(new TextWebSocketFrame(new Envelope(msg).toJson()));
     }
 }

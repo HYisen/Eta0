@@ -56,7 +56,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
             String arg = text.substring(index + 1);
             switch (cmd) {
                 case "get":
-                    ctx.writeAndFlush(new TextWebSocketFrame("accept request to " + arg));
+                    //ctx.writeAndFlush(new TextWebSocketFrame("accept request to " + arg));
                     String[] args = arg.split("\\.");
                     retriever.submit(() -> {
                         Book book = data.get(Integer.valueOf(args[0]));
@@ -69,6 +69,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     break;
                 case "ls":
                     if (".".equals(arg)) {
+                        System.out.println("request for shelf");
                         ctx.channel().writeAndFlush(data);
                     } else {
                         Book book = data.get(Integer.valueOf(arg));

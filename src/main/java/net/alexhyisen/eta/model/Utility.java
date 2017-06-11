@@ -1,5 +1,6 @@
 package net.alexhyisen.eta.model;
 
+import com.google.gson.Gson;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.PrettyXmlSerializer;
