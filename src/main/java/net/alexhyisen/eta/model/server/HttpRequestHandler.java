@@ -1,11 +1,20 @@
 package net.alexhyisen.eta.model.server;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioFile;
+import net.alexhyisen.eta.model.Book;
+import net.alexhyisen.eta.model.Chapter;
 
 import java.io.RandomAccessFile;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Created by Alex on 2017/5/28.
@@ -13,20 +22,70 @@ import java.io.RandomAccessFile;
  */
 class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final String mark;
+    private List<Book> data;
 
     private static final String INDEX_PAGE_PATH =
             "D:\\Code\\Netty\\netty-in-action-cn-ChineseVersion\\chapter12\\src\\main\\resources\\index.html";
 
-    HttpRequestHandler(String mark) {
+    HttpRequestHandler(String mark, List<Book> data) {
         this.mark = mark;
+        this.data = data;
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-        System.out.println("get request");
+        System.out.println("get request to " + request.uri());
+        String[] path = request.uri().split("/");
         if (mark.equalsIgnoreCase(request.uri())) {
             ctx.fireChannelRead(request.retain());
             System.out.println("pass to WebSocket");
+        } else if (request.method().equals(HttpMethod.GET) &&
+                path.length >= 2 && path[1].equals("db")) {
+            //The traditional solution may be faster.
+            /*
+            Integer[] ids = (Integer[]) Arrays.stream(path)
+                    .skip(2)
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList()).toArray();
+            */
+            int[] ids = new int[path.length - 2];
+            for (int i = 0; i < ids.length; i++) {
+                ids[i] = Integer.parseInt(path[i + 2]);
+            }
+
+            Envelope envelope;
+
+            switch (ids.length) {
+                case 2:
+                    assureBookOpened(ids[0]);
+                    envelope = new Envelope(data.get(ids[0]).getChapters().get(ids[1]));
+                    break;
+                case 1:
+                    assureBookOpened(ids[0]);
+                    envelope = new Envelope(data.get(ids[0]));
+                    break;
+                case 0:
+                    envelope = new Envelope(data);
+                    break;
+                default:
+                    throw new RuntimeException("Failed to match RESTful HTTP request");
+            }
+
+            ByteBuf content = Unpooled.wrappedBuffer(envelope.toJson().getBytes());
+
+            FullHttpResponse response = new DefaultFullHttpResponse(
+                    request.protocolVersion(), HttpResponseStatus.OK, content);
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
+            boolean keepAlive = HttpUtil.isKeepAlive(request);
+            if (keepAlive) {
+                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
+                response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+            }
+            ctx.write(response);
+            ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            if (!keepAlive) {
+                future.addListener(ChannelFutureListener.CLOSE);
+            }
         } else {
             //manage HTTP1.1 100 Continue situation
             if (HttpUtil.is100ContinueExpected(request)) {
@@ -48,7 +107,7 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             //a better index page cache strategy could be used there
             if (ctx.pipeline().get(SslHandler.class) == null) {
                 ctx.write(new DefaultFileRegion(file.getChannel(), 0, file.length()));
-                System.out.println("write index.html size = "+file.length());
+                System.out.println("write index.html size = " + file.length());
             } else {
                 ctx.write(new ChunkedNioFile((file.getChannel())));
             }
@@ -64,5 +123,12 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.printStackTrace();
         ctx.close();
+    }
+
+    private void assureBookOpened(int id) {
+        Book book = data.get(id);
+        if (!book.isOpened()) {
+            book.open();
+        }
     }
 }
