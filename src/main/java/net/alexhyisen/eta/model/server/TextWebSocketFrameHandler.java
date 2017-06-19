@@ -38,6 +38,8 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
             ctx.channel().writeAndFlush(new TextWebSocketFrame("Welcome.\nThis is an ExpServer.\nHave a nice day!"));
             group.writeAndFlush(new TextWebSocketFrame("Client " + ctx.channel() + " joined."));
             group.add(ctx.channel());
+            ctx.channel().pipeline()
+                    .addBefore("ws", "wsClose", new CloseWebSocketFrameHandler(group));
         } else {
             super.userEventTriggered(ctx, evt);
         }
@@ -64,16 +66,15 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                             book.open();
                         }
                         Chapter chapter = book.getChapters().get(Integer.valueOf(args[1]));
-                        ctx.channel().writeAndFlush(chapter);
+                        ctx.writeAndFlush(new TextWebSocketFrame(new Envelope(chapter).toJson()));
                     });
                     break;
                 case "ls":
                     if (".".equals(arg)) {
-                        System.out.println("request for shelf");
-                        ctx.channel().writeAndFlush(data);
+                        ctx.writeAndFlush(new TextWebSocketFrame(new Envelope(data).toJson()));
                     } else {
                         Book book = data.get(Integer.valueOf(arg));
-                        ctx.channel().writeAndFlush(book);
+                        ctx.writeAndFlush(new TextWebSocketFrame(new Envelope(book).toJson()));
                     }
                     break;
                 default:

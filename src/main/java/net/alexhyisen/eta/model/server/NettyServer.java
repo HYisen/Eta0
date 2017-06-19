@@ -52,12 +52,8 @@ class NettyServer {
                                 .addLast(new ChunkedWriteHandler())
                                 .addLast(new HttpObjectAggregator(65536))
                                 .addLast(new HttpRequestHandler("/ws",data))
-                                .addLast(new CloseWebSocketFrameHandler(channelGroup))
-                                .addLast(new WebSocketServerProtocolHandler("/ws"))
-                                .addLast(new TextWebSocketFrameHandler(data, channelGroup))
-                                .addLast(new ChapterEncoder())
-                                .addLast(new BookEncoder())
-                                .addLast(new ShelfEncoder());
+                                .addLast("ws",new WebSocketServerProtocolHandler("/ws"))
+                                .addLast(new TextWebSocketFrameHandler(data, channelGroup));
                     }
                 });
         return bootstrap.bind(address);
