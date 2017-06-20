@@ -1,7 +1,5 @@
 package net.alexhyisen.eta.model.mailer;
 
-import net.alexhyisen.eta.model.Book;
-import net.alexhyisen.eta.model.Chapter;
 import net.alexhyisen.eta.model.Config;
 
 import javax.annotation.Nullable;
@@ -20,20 +18,24 @@ public class MailService {
     private String username;
     private String password;
 
-    private static final String INDENTATION="        ";
+    private String indent;
 
-    public MailService(String client, String server, String username, String password) {
+    public MailService(String client, String server, String username, String password,String indent) {
         this.client = client;
         this.server = server;
         this.username = username;
         this.password = password;
+        this.indent = indent;
     }
 
     public MailService(Config config) {
-        this.client = config.get("client");
-        this.server = config.get("server");
-        this.username = config.get("username");
-        this.password = config.get("password");
+        this(
+                config.get("client"),
+                config.get("server"),
+                config.get("username"),
+                config.get("password"),
+                config.get("textIndent")
+        );
     }
 
     public void setClient(String client) {
@@ -106,7 +108,7 @@ public class MailService {
                     composeIdentity(mail.getRecipientName(),mail.getRecipientAddr())));
             client.send("");
             for(String line:mail.getContent()){
-                client.send(INDENTATION+line);
+                client.send(indent +line);
             }
             client.send(".");
             if(!passCheckpoint(client.receive(), "250", "Mail OK")){
@@ -119,18 +121,11 @@ public class MailService {
         }
     }
 
-
-
     public static void main(String[] args) throws IOException {
         Config config=new Config();
         config.load();
 
-        MailService ms=new MailService(
-                config.get("client"),
-                config.get("server"),
-                config.get("username"),
-                config.get("password")
-        );
+        MailService ms=new MailService(config);
 
         String[] content={
                 "Nothing serious",

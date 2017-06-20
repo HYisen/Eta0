@@ -43,7 +43,7 @@ public class MainApp extends Application {
         mainController.handleCloseEvent();
     }
 
-    public void showPage(Book book, Chapter chapter) {
+    void showPage(Book book, Chapter chapter) {
         try {
             FXMLLoader loader=new FXMLLoader(getClass().getResource("/fxml/page.fxml"));
 
@@ -56,7 +56,8 @@ public class MainApp extends Application {
             PageController controller = loader.getController();
             controller.setBook(book);
             controller.setChapter(chapter);
-            controller.initSpinner(mainController.getConfig());
+            controller.setConfig(mainController.getConfig());
+            controller.initSpinner();
             controller.refresh();
 
             pageStage.show();
@@ -65,7 +66,7 @@ public class MainApp extends Application {
         }
     }
 
-    public File openFile(String title){
+    File openFile(String title){
         fileChooser.setTitle(title);
         return fileChooser.showOpenDialog(primaryStage);
     }

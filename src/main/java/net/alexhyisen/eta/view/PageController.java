@@ -23,6 +23,8 @@ public class PageController{
     private Book book;
     private Chapter chapter;
 
+    private Config config;
+
     @FXML private Label codeLabel;
     @FXML private Label bookLabel;
     @FXML private Label chapterLabel;
@@ -38,6 +40,10 @@ public class PageController{
         this.chapter = chapter;
     }
 
+    public void setConfig(Config config) {
+        this.config = config;
+    }
+
     public void refresh(){
         codeLabel.setText(String.valueOf(chapter.getCode()));
         bookLabel.setText(book.getName());
@@ -45,12 +51,11 @@ public class PageController{
         armButton();
 
         dataTextArea.setText(Arrays.stream(chapter.getData())
-                .map(v->"　　"+v+"\n")//2 GBK spaces work, it seemed that several spaces in ASCII do not exactly match.
+                .map(v->config.get("textIndent")+v+"\n")
                 .collect(Collectors.joining()));
     }
 
-    //We need to init Spinner outside explicitly to provide a Config.
-    void initSpinner(Config config){
+    void initSpinner(){
         Integer fontSize=Integer.valueOf(config.get("fontSize"));
         fontSpinner.setEditable(true);
         SpinnerValueFactory<Integer> svf= new SpinnerValueFactory.IntegerSpinnerValueFactory
