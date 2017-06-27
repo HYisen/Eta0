@@ -25,7 +25,7 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private List<Book> data;
 
     private static final String INDEX_PAGE_PATH =
-            "D:\\Code\\Netty\\netty-in-action-cn-ChineseVersion\\chapter12\\src\\main\\resources\\index.html";
+            "E:\\TEMP\\Eta\\index.html";
 
     HttpRequestHandler(String mark, List<Book> data) {
         this.mark = mark;

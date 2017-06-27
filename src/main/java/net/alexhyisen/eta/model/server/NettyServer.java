@@ -12,13 +12,22 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.ImmediateEventExecutor;
 import net.alexhyisen.eta.model.Book;
+import net.alexhyisen.eta.model.Signer;
 import net.alexhyisen.eta.model.Source;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLException;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Paths;
+import java.security.PrivateKey;
 import java.util.List;
 
 /**
@@ -57,5 +66,20 @@ class NettyServer {
                     }
                 });
         return bootstrap.bind(address);
+    }
+
+    private static void makeSecure(Channel channel) {
+        PrivateKey key= null;
+        try {
+            key = Signer.load(Paths.get("priKey"));
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            channel.pipeline().addFirst("ssl", new SslHandler(
+                    SslContextBuilder.forServer(key).build().newEngine(channel.alloc())));
+        } catch (SSLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
