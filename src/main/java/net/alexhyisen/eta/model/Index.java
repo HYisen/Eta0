@@ -67,7 +67,7 @@ public class Index {
 
         @Override
         public InputSource resolveEntity(String publicId, String systemId) throws IOException, SAXException {
-            final String path=".\\";
+            final String path=".";
             //Utility.log("solve p="+publicId+" s="+systemId);
             String name=systemId.substring(systemId.lastIndexOf('/'));
             if(!(Paths.get(path,name).toFile().exists())){
