@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import net.alexhyisen.eta.model.Book;
 import net.alexhyisen.eta.model.Chapter;
+import net.alexhyisen.eta.model.Utility;
 
 import java.util.Arrays;
 import java.util.List;
@@ -75,6 +76,21 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     } else {
                         Book book = data.get(Integer.valueOf(arg));
                         ctx.writeAndFlush(new TextWebSocketFrame(new Envelope(book).toJson()));
+                    }
+                    break;
+                case "refresh":
+                    //It's reasonable to set the procedure blocking.
+                    //As no data retrieve request should be allowed when it's updating.
+                    if ("*".equals(arg)) {
+                        ctx.writeAndFlush(new TextWebSocketFrame("Refreshing all, please wait."));
+                        long cnt = data.stream().parallel().peek(Book::open).count();
+                        ctx.writeAndFlush(new TextWebSocketFrame("Refreshing of " + cnt + " completed"));
+                        Utility.log("all data refreshed ");
+                    } else {
+                        Book book = data.get(Integer.valueOf(arg));
+                        book.open();
+                        ctx.writeAndFlush(new TextWebSocketFrame("Refreshing of " + book.getName() + " completed"));
+                        Utility.log("book " + book.getName() + " refreshed ");
                     }
                     break;
                 default:
