@@ -158,12 +158,15 @@ public class Chapter {
         try {
             Document doc=db.parse(new ByteArrayInputStream(source));
             //System.out.println("GO");
-            Optional<Map.Entry<Node, Long>> result=search(doc.getDocumentElement(),"br").stream()
-                    .map(Node::getParentNode)
-                    .collect(Collectors.groupingBy(Function.identity(),Collectors.counting()))
-                    .entrySet().stream()
-                    //.peek(v-> System.out.println(v.getKey()+"="+v.getValue()))
-                    .max(Map.Entry.comparingByValue());
+
+            Optional<Map.Entry<Node, Long>> result;
+            result = searchRichestNode(doc, "br");
+            if (!result.isPresent()) {
+                //some have multiple <p> rather than <br>
+                //like "https://www.miaobige.com/read/17843/11958498.html"
+                result = searchRichestNode(doc, "p");
+            }
+
             if(result.isPresent()){
                 return result.get().getKey();
             }
@@ -171,7 +174,6 @@ public class Chapter {
             e.printStackTrace();
         }
         //expand(doc.getDocumentElement(),0);
-
         return null;
     }
 
@@ -184,6 +186,7 @@ public class Chapter {
             for(int k=0;k!=nl.getLength();++k){
                 Node it=nl.item(k);
                 String name=it.getNodeName();
+                //expand(it,0);
                 switch (name){
                     case "#text":
                         //replace all blanks to space.
@@ -193,13 +196,16 @@ public class Chapter {
                         //while the next one looks elegant but doesn't work.
                         //String line=it.getNodeValue().replaceAll("\\p{Blank}"," ").trim();
 
-                        //System.out.println("line = "+line);
                         if(!line.isEmpty()){
                             rtn.add(line);
                         }
                         break;
-                    case  "br":
+                    case "br":
                         //rtn.add("");
+                        break;
+                    case "p":
+                        //for some passage that wrapped in <P>
+                        rtn.add(it.getFirstChild().getNodeValue());
                         break;
                 }
             }
@@ -220,7 +226,7 @@ public class Chapter {
         this.code = code;
         this.name = name;
         this.path = path;
-        cached=Files.exists(Paths.get(path+code));
+        cached=Files.exists(Paths.get(path,String.valueOf(code)));
     }
 
     public int getCode() {
@@ -240,7 +246,7 @@ public class Chapter {
             if (isCached()) {
                 Utility.log("read one offline");
                 try {
-                    List<String> lines=Files.readAllLines(Paths.get(getPath()+getCode()));
+                    List<String> lines=Files.readAllLines(Paths.get(getPath(),String.valueOf(getCode())));
                     data=lines.toArray(new String[lines.size()]);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -309,7 +315,7 @@ public class Chapter {
         try {
             if(!isCached())
             {
-                Files.write(Paths.get(getPath()+getCode()),Arrays.asList(getData()), StandardOpenOption.CREATE_NEW);
+                Files.write(Paths.get(getPath(),String.valueOf(getCode())),Arrays.asList(getData()), StandardOpenOption.CREATE_NEW);
                 Utility.log("save "+getCode()+" "+getName());
                 //To be honest, I don't know the meaning of the index file.
                 Files.write(Paths.get(getPath(),"index"),
@@ -323,5 +329,14 @@ public class Chapter {
         }
         Utility.log("skip "+getCode()+" "+getName());
         return false;
+    }
+
+    static Optional<Map.Entry<Node, Long>> searchRichestNode(Document doc, String tag) {
+        return Chapter.search(doc.getDocumentElement(), tag).stream()
+                .map(Node::getParentNode)
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream()
+                //.peek(v-> System.out.println(v.getKey()+"="+v.getValue()))
+                .max(Map.Entry.comparingByValue());
     }
 }
