@@ -6,8 +6,10 @@ import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.PrettyXmlSerializer;
 import org.htmlcleaner.TagNode;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -82,10 +84,16 @@ public class Utility {
 
             //Utility.stamp("check 0");
             final String KEY="charset=";
-            String content=tg
-                    .findElementByAttValue("http-equiv","Content-Type",true,false)
-                    .getAttributeByName("content");
-            String charset=content.substring(content.indexOf(KEY)+KEY.length());
+            TagNode node = tg
+                    .findElementByAttValue("http-equiv", "Content-Type", true, false);
+            String charset;
+            if (node != null) {
+                String content= node.getAttributeByName("content");
+                charset=content.substring(content.indexOf(KEY)+KEY.length());
+            }else {
+                charset = "UTF-8";
+            }
+
             //System.out.println("charset = "+charset+" | "+props.getCharset());
             if(!"utf-8".equalsIgnoreCase(charset)){
                 tg=cleaner.clean(new ByteArrayInputStream(source),charset);

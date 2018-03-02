@@ -2,6 +2,7 @@ package net.alexhyisen.eta.model;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.*;
@@ -17,7 +18,6 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static net.alexhyisen.eta.model.Chapter.searchRichestNode;
@@ -231,7 +231,7 @@ public class Tester {
         t.resume("TimerTest");
         t.report();
 
-        String source = "http://www.23us.cc/html/136/136194/";
+        String source = "https://www.23us.cc/html/136/136194/";
 
         t.resume("download");
         byte[] raw = Utility.download(source);
@@ -263,7 +263,7 @@ public class Tester {
 
         t.resume("parse");
         try {
-            sp.parse("D:\\Code\\out", new Index.ddReader(links));
+            sp.parse(new InputSource(new ByteArrayInputStream(xml)), new Index.ddReader(links));
         } catch (SAXException | IOException e) {
             e.printStackTrace();
         }
@@ -304,8 +304,8 @@ public class Tester {
         //t.testChapter();
         //t.testIndex();
         //t.examineMultiThreadDownload();
-        t.benchmarkChapter();
-        //t.benchmarkIndex();
+        //t.benchmarkChapter();
+        t.benchmarkIndex();
 
         System.out.println("END Tester");
     }

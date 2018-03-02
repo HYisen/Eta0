@@ -89,6 +89,7 @@ public class Book {
     //from the Internet, which is the most time consuming procedure.
 
     public void open(){
+        Utility.log("opening "+name);
         index=new Index(source,path);
         chapters=index.getData().entrySet().stream()
                 .map(v->new Chapter(v.getValue().getHref(),v.getKey(),v.getValue().getText(),path))

@@ -65,6 +65,7 @@ public class Index {
 
         @Override
         public void characters(char[] ch, int start, int length) throws SAXException {
+            //System.out.println(String.valueOf(ch));
             //System.out.println(isChapterLink(link) + "->" + link);
             if (isValid && Objects.equals(name, "a") && isChapterLink(link)) {
                 String content = new String(ch, start, length);
