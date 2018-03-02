@@ -25,7 +25,7 @@ public class Source {
     }
 
     public Source() {
-        this.path=Paths.get(".","source");
+        this.path = Paths.get(".", "source");
     }
 
     public List<Book> getData() {
@@ -37,7 +37,7 @@ public class Source {
         this.data = data;
     }
 
-    @XmlRootElement(name="books")
+    @XmlRootElement(name = "books")
     static class Wrapper {
         private List<Book> books;
 
@@ -51,13 +51,13 @@ public class Source {
         }
     }
 
-    public boolean load(Path path){
+    public boolean load(Path path) {
         try {
-            JAXBContext context=JAXBContext.newInstance(Wrapper.class);
-            Unmarshaller um=context.createUnmarshaller();
+            JAXBContext context = JAXBContext.newInstance(Wrapper.class);
+            Unmarshaller um = context.createUnmarshaller();
 
-            Wrapper wrapper=(Wrapper)um.unmarshal(path.toFile());
-            data =wrapper.getBooks();
+            Wrapper wrapper = (Wrapper) um.unmarshal(path.toFile());
+            data = wrapper.getBooks();
             return true;
         } catch (JAXBException e) {
             e.printStackTrace();
@@ -65,17 +65,17 @@ public class Source {
         return false;
     }
 
-    public boolean load(){
+    public boolean load() {
         return load(path);
     }
 
-    public boolean save(Path path){
+    public boolean save(Path path) {
         try {
-            JAXBContext context=JAXBContext.newInstance(Wrapper.class);
-            Marshaller m=context.createMarshaller();
-            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
+            JAXBContext context = JAXBContext.newInstance(Wrapper.class);
+            Marshaller m = context.createMarshaller();
+            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
-            Wrapper wrapper=new Wrapper();
+            Wrapper wrapper = new Wrapper();
             wrapper.setBooks(data);
 
             m.marshal(wrapper, path.toFile());
@@ -87,7 +87,7 @@ public class Source {
         return false;
     }
 
-    public boolean save(){
+    public boolean save() {
         return save(path);
     }
 }

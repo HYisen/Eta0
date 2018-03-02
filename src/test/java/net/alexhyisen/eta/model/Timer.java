@@ -14,21 +14,21 @@ public class Timer {
     private Instant record;
     private String project;
 
-    public void resume(String project){
-        this.project=project;
-        record=Instant.now();
+    public void resume(String project) {
+        this.project = project;
+        record = Instant.now();
     }
 
-    public void report(String project){
-        long interval= Duration.between(record,Instant.now()).toMillis();
-        if(Objects.equals(project,this.project)){
-            System.out.printf("%s costs %4dms\n",project,interval);
-        }else{
-            System.out.printf("from %s to %s passed %4dms\n",this.project,project,interval);
+    public void report(String project) {
+        long interval = Duration.between(record, Instant.now()).toMillis();
+        if (Objects.equals(project, this.project)) {
+            System.out.printf("%s costs %4dms\n", project, interval);
+        } else {
+            System.out.printf("from %s to %s passed %4dms\n", this.project, project, interval);
         }
     }
 
-    public void report(){
+    public void report() {
         report(project);
     }
 }

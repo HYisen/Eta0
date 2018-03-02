@@ -20,7 +20,7 @@ public class MailService {
 
     private String indent;
 
-    public MailService(String client, String server, String username, String password,String indent) {
+    public MailService(String client, String server, String username, String password, String indent) {
         this.client = client;
         this.server = server;
         this.username = username;
@@ -54,30 +54,30 @@ public class MailService {
         this.password = password;
     }
 
-    private boolean passCheckpoint(String orig, String code, String msg){
-        if(!orig.startsWith(code)){
-            System.out.println("failed to pass checkpoint "+code+" "+msg+
-                    "\nbut receive "+orig);
+    private boolean passCheckpoint(String orig, String code, String msg) {
+        if (!orig.startsWith(code)) {
+            System.out.println("failed to pass checkpoint " + code + " " + msg +
+                    "\nbut receive " + orig);
             return false;
         }
         return true;
     }
 
-    private String composeIdentity(@Nullable String name, String addr){
-        if(name==null){
+    private String composeIdentity(@Nullable String name, String addr) {
+        if (name == null) {
             return addr;
-        }else {
-            return String.format("%s <%s>",name,addr);
+        } else {
+            return String.format("%s <%s>", name, addr);
         }
     }
 
     public boolean send(Mail mail) throws IOException {
-        try (Client client=new NettyClient()){
-            client.link(server,25);
+        try (Client client = new NettyClient()) {
+            client.link(server, 25);
 
             //shake hand
             client.receive();
-            client.send("EHLO "+ this.client);
+            client.send("EHLO " + this.client);
             client.receive(7);
 
             //authentication
@@ -86,32 +86,32 @@ public class MailService {
             client.send(new String(Base64.getEncoder().encode(username.getBytes())));
             client.receive();
             client.send(new String(Base64.getEncoder().encode(password.getBytes())));
-            if(!passCheckpoint(client.receive(),"235","Authentication successful")){
+            if (!passCheckpoint(client.receive(), "235", "Authentication successful")) {
                 return false;
             }
 
             //transmit mail envelope
-            client.send(String.format("MAIL FROM:<%s>",mail.getSenderAddr()));
+            client.send(String.format("MAIL FROM:<%s>", mail.getSenderAddr()));
             passCheckpoint(client.receive(), "250", "Mail OK");
-            client.send(String.format("RCPT TO:<%s>",mail.getRecipientAddr()));
+            client.send(String.format("RCPT TO:<%s>", mail.getRecipientAddr()));
             passCheckpoint(client.receive(), "250", "Mail OK");
 
             //transmit mail content
             client.send("DATA");
             client.receive();
-            client.send("Date: "+
+            client.send("Date: " +
                     ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
             client.send(String.format("From: %s",
-                    composeIdentity(mail.getSenderName(),mail.getSenderAddr())));
-            client.send("Subject: "+mail.getSubject());
+                    composeIdentity(mail.getSenderName(), mail.getSenderAddr())));
+            client.send("Subject: " + mail.getSubject());
             client.send(String.format("To: %s",
-                    composeIdentity(mail.getRecipientName(),mail.getRecipientAddr())));
+                    composeIdentity(mail.getRecipientName(), mail.getRecipientAddr())));
             client.send("");
-            for(String line:mail.getContent()){
-                client.send(indent +line);
+            for (String line : mail.getContent()) {
+                client.send(indent + line);
             }
             client.send(".");
-            if(!passCheckpoint(client.receive(), "250", "Mail OK")){
+            if (!passCheckpoint(client.receive(), "250", "Mail OK")) {
                 return false;
             }
 
@@ -122,21 +122,21 @@ public class MailService {
     }
 
     public static void main(String[] args) throws IOException {
-        Config config=new Config();
+        Config config = new Config();
         config.load();
 
-        MailService ms=new MailService(config);
+        MailService ms = new MailService(config);
 
-        String[] content={
+        String[] content = {
                 "Nothing serious",
                 "没什么大不了的",
                 "なんでもないや"
         };
 
-        Mail mail=new Mail(
-                config.get("senderName"),config.get("senderAddr"),
-                config.get("recipientName"),config.get("recipientAddr"),
-                "SMTP_测试邮件",content);
+        Mail mail = new Mail(
+                config.get("senderName"), config.get("senderAddr"),
+                config.get("recipientName"), config.get("recipientAddr"),
+                "SMTP_测试邮件", content);
         ms.send(mail);
     }
 }

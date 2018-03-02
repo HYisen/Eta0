@@ -20,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * A client based on Netty.
  */
 class NettyClient implements Client {
-    private static class NettyClientHandler extends SimpleChannelInboundHandler<String>{
+    private static class NettyClientHandler extends SimpleChannelInboundHandler<String> {
         private BlockingQueue<String> lines;
 
         NettyClientHandler(BlockingQueue<String> lines) {
@@ -41,19 +41,19 @@ class NettyClient implements Client {
         }
     }
 
-    private static class NettyClientInitializer extends ChannelInitializer<SocketChannel>{
-        private static final StringDecoder DECODER=new StringDecoder();
-        private static final StringEncoder ENCODER=new StringEncoder();
+    private static class NettyClientInitializer extends ChannelInitializer<SocketChannel> {
+        private static final StringDecoder DECODER = new StringDecoder();
+        private static final StringEncoder ENCODER = new StringEncoder();
 
         private final NettyClientHandler handler;
 
         NettyClientInitializer(BlockingQueue<String> lines) {
-            handler=new NettyClientHandler(lines);
+            handler = new NettyClientHandler(lines);
         }
 
         @Override
         protected void initChannel(SocketChannel socketChannel) throws Exception {
-            ChannelPipeline pipeline= socketChannel.pipeline();
+            ChannelPipeline pipeline = socketChannel.pipeline();
 
             pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
             pipeline.addLast(DECODER);
@@ -63,7 +63,7 @@ class NettyClient implements Client {
         }
     }
 
-    private BlockingQueue<String> lines=new LinkedBlockingQueue<>();
+    private BlockingQueue<String> lines = new LinkedBlockingQueue<>();
     //A BlockingQueue is used to simulate the behavior of Base Client, which blocks the thread when nothing in queue.
 
     private EventLoopGroup group;
@@ -72,14 +72,14 @@ class NettyClient implements Client {
 
     @Override
     public void link(String host, int port) throws IOException {
-        group=new NioEventLoopGroup();
+        group = new NioEventLoopGroup();
         try {
-            Bootstrap bootstrap=new Bootstrap();
+            Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(group)
                     .channel(NioSocketChannel.class)
                     .handler(new NettyClientInitializer(lines));
 
-            channel=bootstrap.connect(host,port).sync().channel();
+            channel = bootstrap.connect(host, port).sync().channel();
         } catch (InterruptedException e) {
             throw new IOException(e);//just a relay to fit the Interface.
         }
@@ -87,7 +87,7 @@ class NettyClient implements Client {
 
     @Override
     public void send(String content) {
-        if(lastWrite!=null){
+        if (lastWrite != null) {
             try {
                 lastWrite.sync();
             } catch (InterruptedException e) {
@@ -95,15 +95,15 @@ class NettyClient implements Client {
             }
         }//finish the last sending first if available.
 
-        System.out.println("client: "+content);
-        lastWrite=channel.writeAndFlush(content+"\r\n");
+        System.out.println("client: " + content);
+        lastWrite = channel.writeAndFlush(content + "\r\n");
     }
 
     @Override
     public String receive() throws IOException {
         try {
             String line = lines.take();
-            System.out.println("server: "+line);
+            System.out.println("server: " + line);
             return line;
         } catch (InterruptedException e) {
             throw new IOException(e);
@@ -113,7 +113,7 @@ class NettyClient implements Client {
     @Override
     public void close() throws IOException {
         try {
-            if(lastWrite!=null){
+            if (lastWrite != null) {
                 lastWrite.sync();
             }
             channel.closeFuture().sync();
@@ -124,13 +124,13 @@ class NettyClient implements Client {
     }
 
     public static void main(String[] args) throws Exception {
-        Client client=new NettyClient();
-        client.link("localhost",4444);
+        Client client = new NettyClient();
+        client.link("localhost", 4444);
         client.send("Hello");
-        System.out.println("get "+client.receive());
-        System.out.println("get "+client.receive());
+        System.out.println("get " + client.receive());
+        System.out.println("get " + client.receive());
         client.send("Bye.");
-        System.out.println("get "+client.receive());
+        System.out.println("get " + client.receive());
         client.close();
     }
 }

@@ -19,7 +19,7 @@ class CloseWebSocketFrameHandler extends SimpleChannelInboundHandler<CloseWebSoc
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CloseWebSocketFrame msg) throws Exception {
-        System.out.println("catch CloseFrame from Client "+ctx.channel());
+        System.out.println("catch CloseFrame from Client " + ctx.channel());
         ctx.channel().writeAndFlush(new TextWebSocketFrame("Good Bye."));
         group.remove(ctx.channel());
         group.writeAndFlush(new TextWebSocketFrame("Client " + ctx.channel() + " quited."));

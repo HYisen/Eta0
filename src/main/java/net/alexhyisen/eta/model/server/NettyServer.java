@@ -60,8 +60,8 @@ class NettyServer {
                                 .addLast(new HttpServerCodec())
                                 .addLast(new ChunkedWriteHandler())
                                 .addLast(new HttpObjectAggregator(65536))
-                                .addLast(new HttpRequestHandler("/ws",data))
-                                .addLast("ws",new WebSocketServerProtocolHandler("/ws"))
+                                .addLast(new HttpRequestHandler("/ws", data))
+                                .addLast("ws", new WebSocketServerProtocolHandler("/ws"))
                                 .addLast(new TextWebSocketFrameHandler(data, channelGroup));
                     }
                 });
@@ -69,7 +69,7 @@ class NettyServer {
     }
 
     private static void makeSecure(Channel channel) {
-        PrivateKey key= null;
+        PrivateKey key = null;
         try {
             key = Signer.load(Paths.get("priKey"));
         } catch (IOException | ClassNotFoundException e) {

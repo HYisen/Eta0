@@ -24,7 +24,7 @@ public class Book {
 
     private String name;
 
-    private boolean cached =false;
+    private boolean cached = false;
 
     public Book(String source, String path, String name) {
         this.source = source;
@@ -79,8 +79,9 @@ public class Book {
     public boolean isCached() {
         return cached;
     }
+
     public boolean isOpened() {
-        return chapters!=null;
+        return chapters != null;
     }
 
     //What's the difference between open() and read()?
@@ -88,25 +89,25 @@ public class Book {
     //To make it easier, open() init index & chapters, while read() preload chapters' data
     //from the Internet, which is the most time consuming procedure.
 
-    public void open(){
-        Utility.log("opening "+name);
-        index=new Index(source,path);
-        chapters=index.getData().entrySet().stream()
-                .map(v->new Chapter(v.getValue().getHref(),v.getKey(),v.getValue().getText(),path))
+    public void open() {
+        Utility.log("opening " + name);
+        index = new Index(source, path);
+        chapters = index.getData().entrySet().stream()
+                .map(v -> new Chapter(v.getValue().getHref(), v.getKey(), v.getValue().getText(), path))
                 .collect(Collectors.toList());
     }
 
-    public void read(int nThreads){
-        ExecutorService exec=Executors.newFixedThreadPool(nThreads);
-        if(index==null){
+    public void read(int nThreads) {
+        ExecutorService exec = Executors.newFixedThreadPool(nThreads);
+        if (index == null) {
             open();
         }
-        chapters.forEach(v->v.download(exec));
+        chapters.forEach(v -> v.download(exec));
         exec.shutdown();
-        cached=true;
+        cached = true;
     }
 
-    public List<Chapter> save(){
-        return  getChapters().stream().filter(Chapter::write).collect(Collectors.toList());
+    public List<Chapter> save() {
+        return getChapters().stream().filter(Chapter::write).collect(Collectors.toList());
     }
 }

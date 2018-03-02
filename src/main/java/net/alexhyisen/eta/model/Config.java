@@ -16,11 +16,11 @@ import java.util.Map;
  */
 
 public class Config {
-    private Map<String,String> data=new LinkedHashMap<>();
+    private Map<String, String> data = new LinkedHashMap<>();
     private final Path path;
 
     public Config() {
-        this.path=Paths.get(".","config");
+        this.path = Paths.get(".", "config");
     }
 
     //That explicit constructor is only used for redirect path in Test s
@@ -32,20 +32,20 @@ public class Config {
         return data;
     }
 
-    public String get(String key){
+    public String get(String key) {
         return data.get(key);
     }
 
-    public String put(String key,String value){
+    public String put(String key, String value) {
         return data.put(key, value);
     }
 
-    public boolean save(Path path){
+    public boolean save(Path path) {
         //data.forEach((k,v)-> System.out.println(k+"="+v));
         try {
-            Gson gson=new GsonBuilder().setPrettyPrinting().create();
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
             Files.deleteIfExists(path);
-            Files.write(path,gson.toJson(data).getBytes(),StandardOpenOption.CREATE_NEW);
+            Files.write(path, gson.toJson(data).getBytes(), StandardOpenOption.CREATE_NEW);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -53,15 +53,16 @@ public class Config {
         return false;
     }
 
-    public boolean save(){
+    public boolean save() {
         return save(path);
     }
 
-    public boolean load(Path path){
-        data=new LinkedHashMap<>();//I want to keep the config content in insert order
+    public boolean load(Path path) {
+        data = new LinkedHashMap<>();//I want to keep the config content in insert order
         try {
-            Gson gson=new GsonBuilder().setPrettyPrinting().create();
-            data=gson.fromJson(new String(Files.readAllBytes(path)),new TypeToken<Map<String,String>>(){}.getType());
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            data = gson.fromJson(new String(Files.readAllBytes(path)), new TypeToken<Map<String, String>>() {
+            }.getType());
             //data.forEach((k,v)-> System.out.println(k+"="+v));
             return true;
         } catch (IOException e) {
@@ -70,7 +71,7 @@ public class Config {
         return false;
     }
 
-    public boolean load(){
+    public boolean load() {
         return load(path);
     }
 }

@@ -17,10 +17,10 @@ public class PushService {
         Config config = new Config();
         config.load();
         Integer port = Integer.valueOf(config.get("port"));
-        System.out.println("port = "+port.toString());
+        System.out.println("port = " + port.toString());
         ChannelFuture future = new NettyServer().start(new InetSocketAddress(port));
         future.syncUninterruptibly();
-        System.out.println("launched in "+ Duration.between(timestamp,Instant.now()).toMillis()+" ms");
+        System.out.println("launched in " + Duration.between(timestamp, Instant.now()).toMillis() + " ms");
     }
 
     public static void main(String[] args) {

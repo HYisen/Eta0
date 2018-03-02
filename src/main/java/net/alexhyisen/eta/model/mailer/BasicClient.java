@@ -15,7 +15,7 @@ class BasicClient implements Client {
     private PrintWriter out;
     private BufferedReader in;
 
-    public BasicClient(String host,int port) throws IOException {
+    public BasicClient(String host, int port) throws IOException {
         link(host, port);
     }
 
@@ -26,20 +26,20 @@ class BasicClient implements Client {
     public void link(String host, int port) throws IOException {
         //System.out.println("linking "+host+" at "+port);
         socket = new Socket(host, port);
-        out=new PrintWriter(socket.getOutputStream(),true);
-        in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new PrintWriter(socket.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }
 
     @Override
     public void send(String content) {
-        System.out.println("client: "+content);
+        System.out.println("client: " + content);
         out.println(content);
     }
 
     @Override
     public String receive() throws IOException {
-        String line=in.readLine();
-        System.out.println("server: "+line);
+        String line = in.readLine();
+        System.out.println("server: " + line);
         return line;
     }
 
@@ -52,12 +52,12 @@ class BasicClient implements Client {
     }
 
     public static void main(String[] args) throws IOException {
-        Client client=new BasicClient();
-        client.link("localhost",4444);
+        Client client = new BasicClient();
+        client.link("localhost", 4444);
         client.send("Hello");
-        System.out.println("get "+client.receive());
-        System.out.println("get "+client.receive());
+        System.out.println("get " + client.receive());
+        System.out.println("get " + client.receive());
         client.send("Bye.");
-        System.out.println("get "+client.receive());
+        System.out.println("get " + client.receive());
     }
 }

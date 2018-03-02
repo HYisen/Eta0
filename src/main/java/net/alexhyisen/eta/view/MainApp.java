@@ -18,23 +18,24 @@ public class MainApp extends Application {
     private Stage primaryStage;
 
     private static FileChooser fileChooser;
+
     static {
         //initiate fileChooser
-        fileChooser=new FileChooser();
+        fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(Paths.get(".").toFile());
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("Eta");
 
-        FXMLLoader loader=new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
 
         primaryStage.setScene(new Scene(loader.load()));
         primaryStage.show();
 
-        mainController=loader.getController();
+        mainController = loader.getController();
         mainController.setMainApp(this);
     }
 
@@ -45,7 +46,7 @@ public class MainApp extends Application {
 
     void showPage(Book book, Chapter chapter) {
         try {
-            FXMLLoader loader=new FXMLLoader(getClass().getResource("/fxml/page.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/page.fxml"));
 
             Stage pageStage = new Stage();
             pageStage.setTitle("Chapter Page");
@@ -66,7 +67,7 @@ public class MainApp extends Application {
         }
     }
 
-    File openFile(String title){
+    File openFile(String title) {
         fileChooser.setTitle(title);
         return fileChooser.showOpenDialog(primaryStage);
     }

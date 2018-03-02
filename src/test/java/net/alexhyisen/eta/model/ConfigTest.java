@@ -17,32 +17,32 @@ import static org.junit.Assert.*;
  */
 public class ConfigTest {
     private Path path;
-    private Map<String,String> data;
+    private Map<String, String> data;
 
     @Before
     public void setUp() throws Exception {
-        data=new LinkedHashMap<>();
-        data.put("client","localhost");
-        data.put("server","smtp.163.com");
-        data.put("username","sender@163.com");
-        data.put("password","how_would_I_tell_you");
-        data.put("senderName","SMTP_Tester");
-        data.put("senderAddr","sender@163.com");
-        data.put("recipientName","Receiver");
-        data.put("recipientAddr","receiver@gmail.com");
+        data = new LinkedHashMap<>();
+        data.put("client", "localhost");
+        data.put("server", "smtp.163.com");
+        data.put("username", "sender@163.com");
+        data.put("password", "how_would_I_tell_you");
+        data.put("senderName", "SMTP_Tester");
+        data.put("senderAddr", "sender@163.com");
+        data.put("recipientName", "Receiver");
+        data.put("recipientAddr", "receiver@gmail.com");
 
-        path=Paths.get(".","test_config");
+        path = Paths.get(".", "test_config");
     }
 
     @Test
     public void persistence() throws Exception {
-        Config saveConfig=new Config(path);
+        Config saveConfig = new Config(path);
         data.forEach(saveConfig::put);
         saveConfig.save();
 
-        Config loadConfig=new Config(path);
+        Config loadConfig = new Config(path);
         loadConfig.load();
-        data.forEach((key,value)->{
+        data.forEach((key, value) -> {
             //System.out.println("check "+key+" : "+loadConfig.get(key)+" = "+value);
             assert value.equals(loadConfig.get(key));
         });

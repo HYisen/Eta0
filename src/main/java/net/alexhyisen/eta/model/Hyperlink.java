@@ -4,7 +4,7 @@ package net.alexhyisen.eta.model;
  * Created by Alex on 2017/2/1.
  * Hyperlink is the avatar of a hyperlink in HTML.
  */
-class Hyperlink{
+class Hyperlink {
     private final String text;
     private final String href;
 

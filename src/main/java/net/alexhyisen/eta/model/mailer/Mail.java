@@ -36,7 +36,7 @@ public class Mail {
         this.senderAddr = config.get("senderAddr");
         this.recipientName = config.get("recipientName");
         this.recipientAddr = config.get("recipientAddr");
-        this.subject = String.format("《%s》 %s",bookName,chapter.getName());
+        this.subject = String.format("《%s》 %s", bookName, chapter.getName());
         this.content = chapter.getData();
     }
 
@@ -48,7 +48,8 @@ public class Mail {
         return content;
     }
 
-    public @Nullable String getSenderName() {
+    public @Nullable
+    String getSenderName() {
         return senderName;
     }
 
@@ -56,7 +57,8 @@ public class Mail {
         return senderAddr;
     }
 
-    public @Nullable String getRecipientName() {
+    public @Nullable
+    String getRecipientName() {
         return recipientName;
     }
 

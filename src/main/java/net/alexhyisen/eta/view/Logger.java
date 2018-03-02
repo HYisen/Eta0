@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 class Logger {
     private Label label;
     private ContextMenu cm;
-    private List<String> data=new ArrayList<>();
+    private List<String> data = new ArrayList<>();
     //Lacking in size control, data will expand without limit.
 
     Logger(Label label) {
@@ -27,27 +27,27 @@ class Logger {
         label.addEventHandler(MouseEvent.MOUSE_CLICKED, this::handleMsgLabelAction);
     }
 
-    void push(String msg){
+    void push(String msg) {
         Utility.log(msg);
         data.add(msg);
         label.setText(msg);
     }
 
-    private void handleMsgLabelAction(MouseEvent e){
+    private void handleMsgLabelAction(MouseEvent e) {
         System.out.println("label clicked");
-        if(cm!=null&&cm.isShowing()) {
+        if (cm != null && cm.isShowing()) {
             cm.hide();
-        }else {
-            cm=new ContextMenu();
-            List<MenuItem> items= Utility.revRange(data.size(),0)
+        } else {
+            cm = new ContextMenu();
+            List<MenuItem> items = Utility.revRange(data.size(), 0)
                     .limit(10)
-                    .mapToObj(v->data.get(v))
+                    .mapToObj(v -> data.get(v))
                     .map(MenuItem::new)
                     .collect(Collectors.toList());
             Collections.reverse(items);
             cm.getItems().addAll(items);
             cm.setAnchorLocation(PopupWindow.AnchorLocation.WINDOW_TOP_LEFT);
-            cm.show(label,e.getSceneX()+380,e.getSceneY()+140-23*cm.getItems().size());
+            cm.show(label, e.getSceneX() + 380, e.getSceneY() + 140 - 23 * cm.getItems().size());
             //cm.show(label,label.getLayoutX()+400,label.getLayoutY()+40-23*cm.getItems().size());
         }
     }

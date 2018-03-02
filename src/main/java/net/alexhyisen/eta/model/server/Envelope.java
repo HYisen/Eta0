@@ -44,7 +44,7 @@ public class Envelope {
         if (!orig.isOpened()) {
             orig.open();
         }
-        this.content =orig.getChapters().stream()
+        this.content = orig.getChapters().stream()
                 .map(Chapter::getName)
                 .collect(Collectors.toList()).toArray(new String[orig.getChapters().size()]);
     }
@@ -74,6 +74,6 @@ public class Envelope {
 
     String toJson() {
         Gson gson = new Gson();
-        return gson.toJson(this,this.getClass());
+        return gson.toJson(this, this.getClass());
     }
 }
