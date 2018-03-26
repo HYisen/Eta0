@@ -8,7 +8,6 @@
     </JAVADOC>
     <SOURCES>
       <root url="jar://$MAVEN_REPOSITORY$/net/sourceforge/htmlcleaner/htmlcleaner/2.19/htmlcleaner-2.19-sources.jar!/" />
-      <root url="jar://$USER_HOME$/.ideaLibSources/htmlcleaner-2.19-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
