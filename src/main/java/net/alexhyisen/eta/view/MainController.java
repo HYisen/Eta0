@@ -11,6 +11,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import net.alexhyisen.eta.model.*;
+import net.alexhyisen.eta.model.catcher.Book;
+import net.alexhyisen.eta.model.catcher.Chapter;
+import net.alexhyisen.eta.model.catcher.Source;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
 
@@ -24,7 +27,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class MainController {
     private MainApp mainApp;

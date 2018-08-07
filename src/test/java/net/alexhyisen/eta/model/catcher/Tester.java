@@ -1,5 +1,7 @@
-package net.alexhyisen.eta.model;
+package net.alexhyisen.eta.model.catcher;
 
+import net.alexhyisen.eta.model.Timer;
+import net.alexhyisen.eta.model.Utility;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -20,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static net.alexhyisen.eta.model.Chapter.searchRichestNode;
+import static net.alexhyisen.eta.model.catcher.Chapter.searchRichestNode;
 
 /**
  * Created by Alex on 2017/3/8.
@@ -81,7 +83,7 @@ public class Tester {
     }
 
     void examineMultiThreadDownload() {
-        Timer t = new Timer();
+        net.alexhyisen.eta.model.Timer t = new net.alexhyisen.eta.model.Timer();
 
         t.resume("TimerTest");
         t.report();
@@ -127,7 +129,7 @@ public class Tester {
     }
 
     void benchmarkChapter() {
-        Timer t = new Timer();
+        net.alexhyisen.eta.model.Timer t = new net.alexhyisen.eta.model.Timer();
 
         t.resume("TimerTest");
         t.report();
@@ -226,7 +228,7 @@ public class Tester {
 
 
     void benchmarkIndex() {
-        Timer t = new Timer();
+        net.alexhyisen.eta.model.Timer t = new Timer();
 
         t.resume("TimerTest");
         t.report();
@@ -250,7 +252,7 @@ public class Tester {
         spf.setNamespaceAware(true);
         //It doesn't work to serValidating(false)
         //spf.setValidating(false);
-        SAXParser sp = null;
+        SAXParser sp;
         try {
             sp = spf.newSAXParser();
         } catch (ParserConfigurationException | SAXException e) {

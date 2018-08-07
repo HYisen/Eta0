@@ -1,8 +1,10 @@
 package net.alexhyisen.eta.view;
 
 import javafx.application.Application;
-import javafx.stage.Stage;
 import net.alexhyisen.eta.model.*;
+import net.alexhyisen.eta.model.catcher.Book;
+import net.alexhyisen.eta.model.catcher.Chapter;
+import net.alexhyisen.eta.model.catcher.Source;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
 import net.alexhyisen.eta.model.server.PushService;

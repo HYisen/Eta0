@@ -1,15 +1,12 @@
 package net.alexhyisen.eta.view;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Font;
 import javafx.util.converter.IntegerStringConverter;
-import net.alexhyisen.eta.model.Book;
-import net.alexhyisen.eta.model.Chapter;
+import net.alexhyisen.eta.model.catcher.Book;
+import net.alexhyisen.eta.model.catcher.Chapter;
 import net.alexhyisen.eta.model.Config;
-import net.alexhyisen.eta.model.Utility;
 
 import java.util.Arrays;
 import java.util.List;

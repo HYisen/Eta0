@@ -6,8 +6,8 @@ import javafx.scene.Scene;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import net.alexhyisen.eta.model.Book;
-import net.alexhyisen.eta.model.Chapter;
+import net.alexhyisen.eta.model.catcher.Book;
+import net.alexhyisen.eta.model.catcher.Chapter;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,10 +1,9 @@
 package net.alexhyisen.eta.model.server;
 
 import com.google.gson.Gson;
-import net.alexhyisen.eta.model.Book;
-import net.alexhyisen.eta.model.Chapter;
+import net.alexhyisen.eta.model.catcher.Book;
+import net.alexhyisen.eta.model.catcher.Chapter;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 

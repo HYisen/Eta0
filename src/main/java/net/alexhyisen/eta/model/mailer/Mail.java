@@ -1,11 +1,9 @@
 package net.alexhyisen.eta.model.mailer;
 
-import net.alexhyisen.eta.model.Book;
-import net.alexhyisen.eta.model.Chapter;
+import net.alexhyisen.eta.model.catcher.Chapter;
 import net.alexhyisen.eta.model.Config;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 /**
  * Created by Alex on 2017/3/5.

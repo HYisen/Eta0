@@ -1,11 +1,8 @@
-package net.alexhyisen.eta.model;
+package net.alexhyisen.eta.model.catcher;
 
-import net.alexhyisen.eta.model.mailer.Mail;
-import net.alexhyisen.eta.model.mailer.MailService;
+import net.alexhyisen.eta.model.Utility;
 
 import javax.xml.bind.annotation.XmlElement;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

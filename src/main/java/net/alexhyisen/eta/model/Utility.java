@@ -26,7 +26,7 @@ import java.util.stream.IntStream;
  */
 public class Utility {
     @Nullable
-    static byte[] download(String url) {
+    public static byte[] download(String url) {
         //Utility.stamp("download 0");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         InputStream is = null;
@@ -57,12 +57,12 @@ public class Utility {
     }
 
     @Nullable
-    static byte[] clean(String url) {
+    public static byte[] clean(String url) {
         return clean(download(url));
     }
 
     @Nullable
-    static byte[] clean(@Nullable byte[] source) {
+    public static byte[] clean(@Nullable byte[] source) {
         //Utility.stamp("clean start");
         if (source == null) {
             return null;
@@ -127,7 +127,7 @@ public class Utility {
 
     private static Instant record = null;
 
-    static void stamp(String msg) {
+    public static void stamp(String msg) {
         if (record == null) {
             record = Instant.now();
         }

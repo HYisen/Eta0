@@ -12,17 +12,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
-import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.ImmediateEventExecutor;
-import net.alexhyisen.eta.model.Book;
+import net.alexhyisen.eta.model.catcher.Book;
 import net.alexhyisen.eta.model.Signer;
-import net.alexhyisen.eta.model.Source;
+import net.alexhyisen.eta.model.catcher.Source;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -53,7 +50,7 @@ class NettyServer {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(eventGroup)
                 .channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<Channel>() {
+                .childHandler(new ChannelInitializer<>() {
                     @Override
                     protected void initChannel(Channel channel) throws Exception {
                         channel.pipeline()
@@ -69,7 +66,7 @@ class NettyServer {
     }
 
     private static void makeSecure(Channel channel) {
-        PrivateKey key = null;
+        PrivateKey key;
         try {
             key = Signer.load(Paths.get("priKey"));
         } catch (IOException | ClassNotFoundException e) {

@@ -1,5 +1,7 @@
 package net.alexhyisen.eta.model;
 
+import net.alexhyisen.eta.model.catcher.Book;
+import net.alexhyisen.eta.model.catcher.Source;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

@@ -1,5 +1,6 @@
-package net.alexhyisen.eta.model;
+package net.alexhyisen.eta.model.catcher;
 
+import net.alexhyisen.eta.model.Utility;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -70,7 +71,6 @@ public class Chapter {
             NodeList subs = root.getChildNodes();
             IntStream.range(0, subs.getLength())
                     .mapToObj(subs::item)
-                    .parallel()
                     .flatMap(v -> search(v, name).stream())
                     .sequential()//List is not an container that supports parallel operations.
                     .forEach(rtn::add);
@@ -132,7 +132,7 @@ public class Chapter {
         if (source == null) {
             return Optional.empty();
         } else {
-            return Optional.of(getValue(source));
+            return Optional.ofNullable(getValue(source));
         }
     }
 
@@ -213,7 +213,8 @@ public class Chapter {
                 }
             }
         }
-        return rtn.toArray(new String[rtn.size()]);
+        //Intellij inspects that pre-defined size is now no longer beneficial.
+        return rtn.toArray(new String[0]);
     }
 
     private int code;
@@ -250,7 +251,7 @@ public class Chapter {
                 Utility.log("read one offline");
                 try {
                     List<String> lines = Files.readAllLines(Paths.get(getPath(), String.valueOf(getCode())));
-                    data = lines.toArray(new String[lines.size()]);
+                    data = lines.toArray(new String[0]);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

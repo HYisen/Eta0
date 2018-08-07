@@ -1,5 +1,6 @@
-package net.alexhyisen.eta.model;
+package net.alexhyisen.eta.model.catcher;
 
+import net.alexhyisen.eta.model.Utility;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -83,9 +84,7 @@ public class Index {
                 int omega = orig.lastIndexOf(".");
                 if (alpha < omega) {
                     //System.out.println(orig.substring(alpha, omega));
-                    if (pNumStr.matcher(orig.substring(alpha, omega)).matches()) {
-                        return true;
-                    }
+                    return pNumStr.matcher(orig.substring(alpha, omega)).matches();
                 }
             }
             return false;
@@ -145,7 +144,7 @@ public class Index {
     private String source;
     private String path;
 
-    Index(String source, String path) {
+    public Index(String source, String path) {
         this.source = source;
         this.path = path;
 
