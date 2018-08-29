@@ -310,11 +310,13 @@ public class MainController {
 
     @FXML
     protected void handleSaveChapterButtonAction() {
-        chapterTreeTableView.getSelectionModel().getSelectedItems().stream()
-                .map(TreeItem::getValue)
-                .peek(Chapter::download)
-                .peek(Chapter::write)
-                .forEach(v -> logger.push("save" + v.getName()));
+//        chapterTreeTableView.getSelectionModel().getSelectedItems().stream()
+//                .map(TreeItem::getValue)
+//                .peek(Chapter::download)
+//                .peek(Chapter::write)
+//                .forEach(v -> logger.push("save" + v.getName()));
+        Book book = bookTableView.getSelectionModel().getSelectedItem();
+        book.archive();
     }
 
     @FXML

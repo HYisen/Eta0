@@ -3,6 +3,10 @@ package net.alexhyisen.eta.model.catcher;
 import net.alexhyisen.eta.model.Utility;
 
 import javax.xml.bind.annotation.XmlElement;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -106,5 +110,26 @@ public class Book {
 
     public List<Chapter> save() {
         return getChapters().stream().filter(Chapter::write).collect(Collectors.toList());
+    }
+
+    public void archive() {
+        try (Writer writer = new FileWriter(this.getName() + ".txt")) {
+            writer.write("《" + this.getName() + "》\n\n\n\n");
+            getChapters()
+                    .stream()
+                    .map(v -> "\n\n\n" + v.getName() + "\n\n" +
+                            Arrays
+                                    .stream(v.getData())
+                                    .reduce((a, b) -> a + "\n" + b))
+                    .forEach(v -> {
+                        try {
+                            writer.write(v);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
