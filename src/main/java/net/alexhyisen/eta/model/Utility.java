@@ -53,7 +53,11 @@ public class Utility {
             }
         }
         //Utility.stamp("download 1");
-        return baos.toByteArray();
+        byte[] data = baos.toByteArray();
+        if (data.length < 1000) {
+            System.out.println("data is suspiciously small from "+url);
+        }
+        return data;
     }
 
     @Nullable
@@ -106,7 +110,7 @@ public class Utility {
         }
 
         //Utility.stamp("output 0");
-        ByteArrayOutputStream os = new ByteArrayOutputStream();//Maybe I should set a size, which is obviously larger than 100kb.
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
             new PrettyXmlSerializer(props).writeToStream(tg, os, "utf-8");
         } catch (IOException e) {
