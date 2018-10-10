@@ -33,6 +33,30 @@ public class Item {
         this.time = time;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCost() {
+        return cost;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
     @Override
     public String toString() {
         return name + "\n" + time + " # " + type + " | " + from + " @ " + cost + "\n" + desc + "\n";
