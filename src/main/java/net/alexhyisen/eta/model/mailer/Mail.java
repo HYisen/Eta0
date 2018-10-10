@@ -1,7 +1,7 @@
 package net.alexhyisen.eta.model.mailer;
 
-import net.alexhyisen.eta.model.catcher.Chapter;
 import net.alexhyisen.eta.model.Config;
+import net.alexhyisen.eta.model.catcher.Chapter;
 
 import javax.annotation.Nullable;
 
@@ -30,12 +30,23 @@ public class Mail {
     }
 
     public Mail(Config config, String bookName, Chapter chapter) {
-        this.senderName = config.get("senderName");
-        this.senderAddr = config.get("senderAddr");
-        this.recipientName = config.get("recipientName");
-        this.recipientAddr = config.get("recipientAddr");
-        this.subject = String.format("《%s》 %s", bookName, chapter.getName());
-        this.content = chapter.getData();
+        this(
+                config.get("senderName"),
+                config.get("senderAddr"),
+                config.get("recipientName"),
+                config.get("recipientAddr"),
+                String.format("《%s》 %s", bookName, chapter.getName()),
+                chapter.getData());
+    }
+
+    public Mail(Config config, String subject, String... content) {
+        this(
+                config.get("senderName"),
+                config.get("senderAddr"),
+                config.get("recipientName"),
+                config.get("recipientAddr"),
+                subject,
+                content);
     }
 
     public String getSubject() {
