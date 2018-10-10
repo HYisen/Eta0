@@ -2,6 +2,7 @@ package net.alexhyisen.eta.model.smzdm;
 
 import net.alexhyisen.eta.model.Config;
 import net.alexhyisen.eta.model.Utility;
+import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
 import org.jsoup.Jsoup;
 
@@ -15,7 +16,15 @@ public class Task {
     private long minPrize = 0, maxPrize = 0;
 
     private Item stamp = null;
-    private static MailService ms = new MailService(new Config());
+
+    private static Config config;
+    private static MailService ms;
+
+    static {
+        config = new Config();
+        config.load();
+        ms = new MailService(config);
+    }
 
     public Task(String key, long minPrize, long maxPrize) {
         this.key = key;
@@ -76,7 +85,7 @@ public class Task {
                     }
                     return new Item(type, name, cost, desc, from, time);
                 })
-                .peek(System.out::println)
+//                .peek(System.out::println)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
@@ -104,10 +113,24 @@ public class Task {
             var size = list.size();
             Utility.log(this.toString() + " " + "find " + size);
 
+            if (size != 0) {
+                if (size == 1) {
+                    Item item = list.get(0);
+                    //Should I use item.getName instead key?
+                    ms.send(new Mail(config, key + " @ " + item.getCost(), item.toString()));
+                } else {
+                    var content = list
+                            .stream()
+                            .map(Item::toString)
+                            .toArray(String[]::new);
+                    ms.send(new Mail(config, key + " # " + size, content));
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     @Override
     public String toString() {
@@ -115,8 +138,6 @@ public class Task {
     }
 
     public static void main(String[] args) {
-//        byte[] clean = Utility.clean("https://search.smzdm.com/?c=home&s=%E6%98%BE%E5%8D%A1&v=b");
-//        System.out.println(new String(clean));
         new Task("RT-AC86U").run();
     }
 }
