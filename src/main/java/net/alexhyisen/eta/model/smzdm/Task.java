@@ -98,7 +98,10 @@ public class Task {
         long page = 1;
         var list = collectOne(1);
         if (stamp != null) {
-            if (!list.contains(stamp)) {
+            //There should be a more elegant way to describe the following procedure.
+            if (list.contains(stamp)) {
+                list = list.subList(0, list.indexOf(stamp));
+            } else {
                 List<Item> more;
                 while (!(more = collectOne(++page)).contains(stamp)) {
                     list.addAll(more);
