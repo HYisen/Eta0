@@ -8,8 +8,10 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import net.alexhyisen.eta.model.Utility;
 import net.alexhyisen.eta.model.catcher.Book;
 import net.alexhyisen.eta.model.catcher.Chapter;
+import net.alexhyisen.eta.model.catcher.Source;
 import net.alexhyisen.eta.model.smzdm.Task;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -144,6 +146,13 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                         ));
                     }
                     break;
+                case "reload":
+                    //Possible duplicates in NettyService::init, shall be merged into one.
+                    Source source = new Source(Paths.get("sourceAll"));
+                    source.load();
+                    data.clear();//Remember, data doesn't belong to this.
+                    data.addAll(source.getData());
+                    ctx.writeAndFlush(new TextWebSocketFrame("reloaded"));
                 default:
                     group.writeAndFlush(msg.retain());
             }
