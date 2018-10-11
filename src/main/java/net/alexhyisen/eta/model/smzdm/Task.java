@@ -9,6 +9,10 @@ import org.jsoup.Jsoup;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class Task {
@@ -16,6 +20,7 @@ public class Task {
     private long minPrize = 0, maxPrize = 0;
 
     private Item stamp = null;
+    private ScheduledExecutorService handle = null;
 
     private static Config config;
     private static MailService ms;
@@ -131,6 +136,24 @@ public class Task {
         }
     }
 
+    public void start(long intervalSecs) {
+        Utility.log("start " + toString() +
+                " at interval " + intervalSecs + " sec" + (intervalSecs > 1 ? "" : "s"));
+        if (handle != null) {
+            Utility.log("kill already started one");
+            stop();
+        }
+        handle = Executors.newSingleThreadScheduledExecutor();
+        handle.scheduleAtFixedRate(this::run, intervalSecs, intervalSecs, TimeUnit.SECONDS);
+    }
+
+    public void stop() {
+        if (handle != null) {
+            Utility.log("stop " + toString());
+            handle.shutdown();
+            handle = null;
+        }
+    }
 
     @Override
     public String toString() {
@@ -139,5 +162,11 @@ public class Task {
 
     public static void main(String[] args) {
         new Task("RT-AC86U").run();
+        var task = new Task("RT-AC86U");
+        task.start(5);
+        var input = new Scanner(System.in).nextLine();
+
+        System.out.println(input);
+        task.stop();
     }
 }
