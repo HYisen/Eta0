@@ -16,15 +16,17 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.ImmediateEventExecutor;
-import net.alexhyisen.eta.model.catcher.Book;
 import net.alexhyisen.eta.model.Signer;
+import net.alexhyisen.eta.model.catcher.Book;
 import net.alexhyisen.eta.model.catcher.Source;
+import net.alexhyisen.eta.model.smzdm.Task;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,6 +38,7 @@ class NettyServer {
     private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
 
     private List<Book> data;
+    private List<Task> jobs = new ArrayList<>();
 
     private void init() {
         Source source = new Source();
@@ -59,7 +62,7 @@ class NettyServer {
                                 .addLast(new HttpObjectAggregator(65536))
                                 .addLast(new HttpRequestHandler("/ws", data))
                                 .addLast("ws", new WebSocketServerProtocolHandler("/ws"))
-                                .addLast(new TextWebSocketFrameHandler(data, channelGroup));
+                                .addLast(new TextWebSocketFrameHandler(data, jobs, channelGroup));
                     }
                 });
         return bootstrap.bind(address);
