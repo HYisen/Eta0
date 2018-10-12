@@ -139,11 +139,10 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     if (jobs.isEmpty()) {
                         ctx.writeAndFlush(new TextWebSocketFrame("No task is running."));
                     } else {
-                        ctx.writeAndFlush(new TextWebSocketFrame(
-                                IntStream.range(0, jobs.size())
-                                        .mapToObj(v -> String.format("%4d | %s", v, jobs.get(v).toString()))
-                                        .collect(Collectors.joining("\n"))
-                        ));
+                        IntStream.range(0, jobs.size())
+                                .mapToObj(v -> String.format("%4d | %s", v, jobs.get(v).toString()))
+                                .map(TextWebSocketFrame::new)
+                                .forEach(ctx::writeAndFlush);
                     }
                     break;
                 case "reload":
