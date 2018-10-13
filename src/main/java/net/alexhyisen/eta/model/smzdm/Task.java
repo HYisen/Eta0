@@ -8,6 +8,7 @@ import org.jsoup.Jsoup;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
@@ -60,6 +61,12 @@ public class Task {
 //        System.out.println("title = " + document.title());
         var elements = document.getElementsByClass("feed-block z-hor-feed");
 
+//        var dice = new Random().nextInt(6) + 1;
+//        System.out.println(dice + toString());
+//        if (dice == 6) {
+//            throw new IOException("Surprise!");
+//        }
+
         return elements
                 .stream()
                 .map(v -> {
@@ -94,25 +101,31 @@ public class Task {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    private List<Item> collectAll() throws IOException {
-        long page = 1;
-        var list = collectOne(1);
-        if (stamp != null) {
-            //There should be a more elegant way to describe the following procedure.
-            if (list.contains(stamp)) {
-                list = list.subList(0, list.indexOf(stamp));
-            } else {
-                List<Item> more;
-                while (!(more = collectOne(++page)).contains(stamp)) {
-                    list.addAll(more);
+    private List<Item> collectAll() {
+        try {
+            long page = 1;
+            var list = collectOne(1);
+            if (stamp != null) {
+                //There should be a more elegant way to describe the following procedure.
+                if (list.contains(stamp)) {
+                    list = list.subList(0, list.indexOf(stamp));
+                } else {
+                    List<Item> more;
+                    while (!(more = collectOne(++page)).contains(stamp)) {
+                        list.addAll(more);
+                    }
+                    more.stream().takeWhile(v -> !v.equals(stamp)).forEach(list::add);
                 }
-                more.stream().takeWhile(v -> !v.equals(stamp)).forEach(list::add);
             }
+            if (!list.isEmpty()) {
+                stamp = list.get(0);
+            }
+            return list;
+        } catch (IOException e) {
+            e.printStackTrace();
+            Utility.log("fail to collect data of " + toString());
+            return Collections.emptyList();
         }
-        if (!list.isEmpty()) {
-            stamp = list.get(0);
-        }
-        return list;
     }
 
     public void run() {
@@ -136,6 +149,7 @@ public class Task {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            Utility.log("email fails in " + toString());
         }
     }
 
@@ -164,12 +178,15 @@ public class Task {
     }
 
     public static void main(String[] args) {
-        new Task("RT-AC86U").run();
+//        new Task("RT-AC86U").run();
         var task = new Task("RT-AC86U");
+        var more = new Task("surface");
         task.start(5);
+        more.start(8);
         var input = new Scanner(System.in).nextLine();
 
         System.out.println(input);
         task.stop();
+        more.stop();
     }
 }
