@@ -122,11 +122,16 @@ public class Utility {
     }
 
     public static void log(String msg) {
-        String message = LocalTime.now() + " " + msg;
-        System.out.println(message);
+        String message = LocalDateTime.now() + " " + msg + "\n";
+        System.out.print(message);
+
         try {
+            var path = Paths.get(".", "log");
+            if (!Files.exists(path)) {
+                Files.createFile(path);
+            }
             Files.write(
-                    Paths.get(".", "log"),
+                    path,
                     message.getBytes(),
                     StandardOpenOption.APPEND);
         } catch (IOException e) {
