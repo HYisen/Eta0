@@ -1,15 +1,15 @@
 package net.alexhyisen.eta.model;
 
-import com.google.gson.Gson;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.PrettyXmlSerializer;
 import org.htmlcleaner.TagNode;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.*;
-import java.net.MalformedURLException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -55,7 +55,7 @@ public class Utility {
         //Utility.stamp("download 1");
         byte[] data = baos.toByteArray();
         if (data.length < 1000) {
-            System.out.println("data is suspiciously small from "+url);
+            System.out.println("data is suspiciously small from " + url);
         }
         return data;
     }
@@ -122,7 +122,17 @@ public class Utility {
     }
 
     public static void log(String msg) {
-        System.out.println(LocalTime.now() + " " + msg);
+        String message = LocalTime.now() + " " + msg;
+        System.out.println(message);
+        try {
+            Files.write(
+                    Paths.get(".", "log"),
+                    message.getBytes(),
+                    StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public static IntStream revRange(int from, int to) {
