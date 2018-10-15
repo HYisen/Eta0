@@ -15,7 +15,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -88,8 +87,8 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     //As no data retrieve request should be allowed when it's updating.
                     if ("*".equals(arg)) {
                         ctx.writeAndFlush(new TextWebSocketFrame("Refreshing all, please wait."));
-                        long cnt = data.stream().parallel().peek(Book::open).count();
-                        ctx.writeAndFlush(new TextWebSocketFrame("Refreshing of " + cnt + " completed"));
+                        data.stream().parallel().forEach(Book::open);
+                        ctx.writeAndFlush(new TextWebSocketFrame("Refreshing of " + data.size() + " completed"));
                         Utility.log("all data refreshed ");
                     } else {
                         Book book = data.get(Integer.valueOf(arg));
