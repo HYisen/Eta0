@@ -75,7 +75,7 @@ public class Task {
                     String cost = "";
                     String desc = v.child(1).child(1).text();
                     String from = "";
-                    String time = v.child(1).child(2).child(1).child(1).text();
+                    String time = v.child(1).child(2).child(1).getElementsByClass("feed-block-extras").text();
                     switch (type) {
                         case "极速发":
                         case "好价频道":
@@ -91,6 +91,21 @@ public class Task {
                             cost = "N/A";
                             from = v.child(1).child(2).child(1).child(0).child(1).text();
                             break;
+                        case "资讯":
+                            cost = "N/A";
+                            from = "N/A";
+                            break;
+                        case "百科商品":
+                            try {
+                                cost = v.child(1).child(0).child(1).text();
+                            } catch (IndexOutOfBoundsException e) {
+                                cost = "N/A";
+                            }
+                            try {
+                                from = v.child(1).child(2).child(1).child(1).child(0).text();
+                            } catch (IndexOutOfBoundsException e) {
+                                from = "N/ A";
+                            }
                         default:
                             System.out.println(type);
                             System.out.println(v);
@@ -128,11 +143,13 @@ public class Task {
         }
     }
 
+     private static long cnt = 0;
+
     public void run() {
         try {
             var list = collectAll();
             var size = list.size();
-            Utility.log(this.toString() + " " + "find " + size);
+            Utility.log(String.format("%8d | ", ++cnt) + this.toString() + " " + "find " + size);
 
             if (size != 0) {
                 if (size == 1) {
@@ -179,14 +196,14 @@ public class Task {
 
     public static void main(String[] args) {
 //        new Task("RT-AC86U").run();
-        var task = new Task("RT-AC86U");
+//        var task = new Task("RT-AC86U");
         var more = new Task("surface");
-        task.start(5);
-        more.start(8);
+//        task.start(5);
+        more.start(10);
         var input = new Scanner(System.in).nextLine();
 
         System.out.println(input);
-        task.stop();
+//        task.stop();
         more.stop();
     }
 }
