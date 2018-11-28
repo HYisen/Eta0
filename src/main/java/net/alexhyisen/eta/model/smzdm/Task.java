@@ -106,7 +106,9 @@ public class Task {
                             } catch (IndexOutOfBoundsException e) {
                                 from = "N/ A";
                             }
+                            break;
                         default:
+                            Utility.log("fail to map type " + type);
                             System.out.println(type);
                             System.out.println(v);
                     }
