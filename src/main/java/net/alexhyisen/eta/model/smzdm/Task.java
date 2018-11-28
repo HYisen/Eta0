@@ -131,6 +131,9 @@ public class Task {
                     }
                     more.stream().takeWhile(v -> !v.equals(stamp)).forEach(list::add);
                 }
+            }else {
+                Utility.log("Bootstrap goes on well, find "+list.size()+" but skipped.");
+                list.clear();
             }
             if (!list.isEmpty()) {
                 stamp = list.get(0);
