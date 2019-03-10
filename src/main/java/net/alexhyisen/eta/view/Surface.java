@@ -1,7 +1,8 @@
 package net.alexhyisen.eta.view;
 
 import javafx.application.Application;
-import net.alexhyisen.eta.model.*;
+import net.alexhyisen.eta.model.Config;
+import net.alexhyisen.eta.model.Utility;
 import net.alexhyisen.eta.model.catcher.Book;
 import net.alexhyisen.eta.model.catcher.Chapter;
 import net.alexhyisen.eta.model.catcher.Source;
@@ -9,9 +10,11 @@ import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
 import net.alexhyisen.eta.model.server.PushService;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -94,13 +97,12 @@ public class Surface {
     }
 
     //return null if the quit id, which is -1, is selected
-    @Nullable
-    private static <T> T select(List<T> candidates, Function<T, String> getNameMethod) {
+    private static <T> Optional<T> select(List<T> candidates, Function<T, String> getNameMethod) {
         for (int k = 0; k < candidates.size(); k++) {
             System.out.printf("\t%4d -> %s\n", k, getNameMethod.apply(candidates.get(k)));
         }
         int choice = Integer.valueOf(getInput("selected id", tran(v -> v >= -1 && v < candidates.size())));
-        return choice == -1 ? null : candidates.get(choice);
+        return Optional.ofNullable(choice == -1 ? null : candidates.get(choice));
     }
 
     private enum Command {
@@ -152,10 +154,11 @@ public class Surface {
         while (true) {
             System.out.println();
             System.out.println("please selected the book");
-            Book book = select(source.getData(), Book::getName);
-            if (book == null) {
+            var bookOptional = select(source.getData(), Book::getName);
+            if (bookOptional.isEmpty()) {
                 break;
             }
+            var book = bookOptional.get();
             System.out.println("opening book " + book.getName() + " from " + book.getSource());
             book.open();
 
@@ -163,10 +166,11 @@ public class Surface {
             while (true) {
                 System.out.println();
                 System.out.println("please selected the chapter");
-                Chapter chapter = select(book.getChapters(), Chapter::getName);
-                if (chapter == null) {
+                var chapterOptional = select(book.getChapters(), Chapter::getName);
+                if (chapterOptional.isEmpty()) {
                     continue selectBook;
                 }
+                var chapter = chapterOptional.get();
                 printChapter(book, chapter);
 
                 while (true) {
