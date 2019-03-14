@@ -11,10 +11,13 @@ import net.alexhyisen.eta.model.catcher.Chapter;
 import net.alexhyisen.eta.model.catcher.Source;
 import net.alexhyisen.eta.model.smzdm.Task;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 /**
@@ -25,13 +28,15 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
     private List<Book> data;
     private List<Task> jobs;
     private final ChannelGroup group;
+    private final Closeable shutdownHandler;
     //a singleton retriever ExecutorService used to do the disk IO jobs.
     private static ExecutorService retriever = Executors.newSingleThreadExecutor();
 
-    TextWebSocketFrameHandler(List<Book> data, List<Task> jobs, ChannelGroup group) {
+    TextWebSocketFrameHandler(List<Book> data, List<Task> jobs, ChannelGroup group, Closeable shutdownHandler) {
         this.data = data;
         this.jobs = jobs;
         this.group = group;
+        this.shutdownHandler = shutdownHandler;
     }
 
     @Override
@@ -151,6 +156,25 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     data.clear();//Remember, data doesn't belong to this.
                     data.addAll(source.getData());
                     ctx.writeAndFlush(new TextWebSocketFrame("reloaded"));
+                    break;
+                case "balus":
+                    final String info = "shutdown as " + ctx.channel() + " required.";
+                    Utility.log(Utility.LogCls.INFO, info);
+                    group.writeAndFlush(new TextWebSocketFrame(info));
+
+                    retriever.shutdown();
+                    try {
+                        retriever.awaitTermination(10, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    Utility.log(Utility.LogCls.LOOP, "retriever terminated.");
+
+                    try {
+                        shutdownHandler.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 default:
                     group.writeAndFlush(msg.retain());
             }

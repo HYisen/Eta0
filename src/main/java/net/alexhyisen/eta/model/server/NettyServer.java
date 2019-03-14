@@ -17,11 +17,13 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.ImmediateEventExecutor;
 import net.alexhyisen.eta.model.Signer;
+import net.alexhyisen.eta.model.Utility;
 import net.alexhyisen.eta.model.catcher.Book;
 import net.alexhyisen.eta.model.catcher.Source;
 import net.alexhyisen.eta.model.smzdm.Task;
 
 import javax.net.ssl.SSLException;
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Paths;
@@ -33,12 +35,13 @@ import java.util.List;
  * Created by Alex on 2017/5/28.
  * A Server to transit data through WebSocket based on netty.
  */
-class NettyServer {
+class NettyServer implements Closeable {
     private final EventLoopGroup eventGroup = new NioEventLoopGroup();
     private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
 
     private List<Book> data;
     private List<Task> jobs = new ArrayList<>();
+    private NettyServer self = this;
 
     private void init() {
         Source source = new Source();
@@ -55,19 +58,33 @@ class NettyServer {
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<>() {
                     @Override
-                    protected void initChannel(Channel channel) throws Exception {
+                    protected void initChannel(Channel channel) {
                         channel.pipeline()
                                 .addLast(new HttpServerCodec())
                                 .addLast(new ChunkedWriteHandler())
                                 .addLast(new HttpObjectAggregator(65536))
                                 .addLast(new HttpRequestHandler("/ws", data))
                                 .addLast("ws", new WebSocketServerProtocolHandler("/ws"))
-                                .addLast(new TextWebSocketFrameHandler(data, jobs, channelGroup));
+                                .addLast(new TextWebSocketFrameHandler(data, jobs, channelGroup, self));
                     }
                 });
         return bootstrap.bind(address);
     }
 
+    @Override
+    public void close() throws IOException {
+        try {
+            channelGroup.close().sync();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new IOException(e);
+        }
+        Utility.log(Utility.LogCls.LOOP, "ChannelGroup cleaned.");
+        eventGroup.shutdownGracefully();
+        Utility.log(Utility.LogCls.INFO, "final");
+    }
+
+    @SuppressWarnings("unused")
     private static void makeSecure(Channel channel) {
         PrivateKey key;
         try {
