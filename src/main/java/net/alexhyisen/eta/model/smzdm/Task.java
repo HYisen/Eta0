@@ -9,18 +9,18 @@ import org.jsoup.Jsoup;
 
 import javax.net.ssl.SSLProtocolException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class Task {
     private String key;
     private long minPrize = 0, maxPrize = 0;
+
+    private String argument;
 
     private Item stamp = null;
     private ScheduledExecutorService handle = null;
@@ -158,26 +158,33 @@ public class Task {
         }
     }
 
-    private static long cnt = 0;
+    private static AtomicLong globalCount = new AtomicLong(0);
+    private long localCount = 0;
 
     @SuppressWarnings("WeakerAccess")
     public void run() {
         var list = collectAll();
         try {
             var size = list.size();
-            Utility.log(String.format("%8d | ", ++cnt) + this.toString() + " " + "find " + size);
+            Utility.log(String.format("%4d(%6d) | %s find %d",
+                    ++localCount, globalCount.addAndGet(1), this.toString(), size));
 
-            if (size != 0) {
-                if (size == 1) {
-                    Item item = list.get(0);
-                    //Should I use item.getName instead key?
-                    ms.send(new Mail(config, key + " @ " + item.getCost(), item.toString()));
-                } else {
-                    var content = list
-                            .stream()
-                            .map(Item::toString)
-                            .toArray(String[]::new);
-                    ms.send(new Mail(config, key + " # " + size, content));
+            if (localCount == 1) {
+                Utility.log(Utility.LogCls.SALE, String.format("skip the first scan of %s with %s",
+                        this.toString(), Utility.genDesc(size, "result")));
+            } else {
+                if (size != 0) {
+                    if (size == 1) {
+                        Item item = list.get(0);
+                        //Should I use item.getName instead key?
+                        ms.send(new Mail(config, key + " @ " + item.getCost(), item.toString()));
+                    } else {
+                        var content = list
+                                .stream()
+                                .map(Item::toString)
+                                .toArray(String[]::new);
+                        ms.send(new Mail(config, key + " # " + size, content));
+                    }
                 }
             }
         } catch (IOException e) {
@@ -193,7 +200,7 @@ public class Task {
         Utility.log(Utility.LogCls.INFO, "start " + toString() +
                 " with delay " + delaySecs + " sec" + (delaySecs > 1 ? "" : "s"));
         if (handle != null) {
-            Utility.log("kill already started one");
+            Utility.log(Utility.LogCls.SALE, "kill already started one");
             stop();
         }
         handle = Executors.newSingleThreadScheduledExecutor();
@@ -202,10 +209,18 @@ public class Task {
 
     public void stop() {
         if (handle != null) {
-            Utility.log(Utility.LogCls.INFO, "stop " + toString());
+            Utility.log(Utility.LogCls.SALE, "stop " + toString());
             handle.shutdown();
             handle = null;
         }
+    }
+
+    public Optional<String> getArgumentOptional() {
+        return Optional.ofNullable(argument);
+    }
+
+    public void setArgument(String argument) {
+        this.argument = argument;
     }
 
     @Override

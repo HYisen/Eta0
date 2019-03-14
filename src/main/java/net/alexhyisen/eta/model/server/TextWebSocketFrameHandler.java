@@ -13,11 +13,16 @@ import net.alexhyisen.eta.model.smzdm.Task;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -31,6 +36,9 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
     private final Closeable shutdownHandler;
     //a singleton retriever ExecutorService used to do the disk IO jobs.
     private static ExecutorService retriever = Executors.newSingleThreadExecutor();
+
+    private static Path JOBS_SAVE_PATH = Path.of(".", "jobs");
+
 
     TextWebSocketFrameHandler(List<Book> data, List<Task> jobs, ChannelGroup group, Closeable shutdownHandler) {
         this.data = data;
@@ -103,30 +111,18 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     }
                     break;
                 case "Start-Task":
-                    args = arg.split("_");
-                    Utility.log(Utility.LogCls.LOOP, String.valueOf(args.length));
-                    if (args.length != 4) {
-                        ctx.writeAndFlush(new TextWebSocketFrame(
-                                "hint: 'Start-Task Keywords_IntervalSecs_MinPrize_MaxPrize'"));
-                    } else {
-                        var task = new Task(args[0], Long.valueOf(args[2]), Long.valueOf(args[3]));
-                        jobs.add(task);
-                        Long intervalSecs = Long.valueOf(args[1]);
-                        task.start(intervalSecs);
-                        ctx.writeAndFlush(new TextWebSocketFrame(String.format(
-                                "started %4d | %s @ %d", jobs.size() - 1, task, intervalSecs)));
-                    }
+                    manageTaskArg(ctx, arg, jobs);
                     break;
                 case "Stop-Task":
                     if ("*".equals(arg)) {
-                        int size = jobs.size();
-                        ctx.writeAndFlush(new TextWebSocketFrame("stop all " + size + (size > 1 ? " tasks" : "task")));
-                        jobs.forEach(Task::stop);
+                        int size = this.jobs.size();
+                        ctx.writeAndFlush(new TextWebSocketFrame("stop all " + Utility.genDesc(size, "task")));
+                        this.jobs.forEach(Task::stop);
                     } else {
                         try {
                             int id = Integer.valueOf(arg);
-                            jobs.get(id).stop();
-                            jobs.remove(id);
+                            this.jobs.get(id).stop();
+                            this.jobs.remove(id);
                         } catch (NumberFormatException e) {
                             ctx.writeAndFlush(new TextWebSocketFrame("bad input (NumberFormatException)"));
                         } catch (IndexOutOfBoundsException e) {
@@ -149,6 +145,22 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                                 .forEach(ctx::writeAndFlush);
                     }
                     break;
+                case "Resume-Task":
+                    if (jobs.isEmpty()) {
+                        if (Files.exists(JOBS_SAVE_PATH)) {
+                            try {
+                                Files.lines(JOBS_SAVE_PATH).forEach(v -> manageTaskArg(ctx, v, jobs));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Utility.log(Utility.LogCls.SALE, "failed to resume tasks");
+                            }
+                        }
+                        ctx.writeAndFlush(new TextWebSocketFrame(Utility.genDesc(
+                                jobs.size(), "task has", "tasks have") + " been resumed"));
+                    } else {
+                        ctx.writeAndFlush(new TextWebSocketFrame("An empty Task List is a must."));
+                    }
+                    break;
                 case "reload":
                     //Possible duplicates in NettyService::init, shall be merged into one.
                     Source source = new Source(Paths.get("sourceAll"));
@@ -162,13 +174,34 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     Utility.log(Utility.LogCls.INFO, info);
                     group.writeAndFlush(new TextWebSocketFrame(info));
 
+                    jobs.forEach(Task::stop);
+                    ctx.writeAndFlush(new TextWebSocketFrame("killed " + Utility.genDesc(jobs.size(), "task")));
+                    Utility.log(Utility.LogCls.SALE, "all the tasks stopped.");
+
+                    final var lines = jobs
+                            .stream()
+                            .map(Task::getArgumentOptional)
+                            .flatMap(Optional::stream)
+                            .collect(Collectors.toUnmodifiableList());
+                    try {
+                        Files.deleteIfExists(JOBS_SAVE_PATH);
+                        Files.createFile(JOBS_SAVE_PATH);
+                        Files.write(JOBS_SAVE_PATH, lines, StandardOpenOption.APPEND);
+                        ctx.writeAndFlush(new TextWebSocketFrame(String.format("saved %d out of %s.",
+                                lines.size(), Utility.genDesc(jobs.size(), "task"))));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Utility.log(Utility.LogCls.SALE, "failed to save jobs.");
+                        ctx.writeAndFlush(new TextWebSocketFrame("failed to save jobs."));
+                    }
+
                     retriever.shutdown();
                     try {
                         retriever.awaitTermination(10, TimeUnit.SECONDS);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    Utility.log(Utility.LogCls.LOOP, "retriever terminated.");
+                    Utility.log(Utility.LogCls.BOOK, "retriever terminated.");
 
                     try {
                         shutdownHandler.close();
@@ -178,6 +211,24 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                 default:
                     group.writeAndFlush(msg.retain());
             }
+        }
+    }
+
+    private static void manageTaskArg(ChannelHandlerContext ctx, String arg, List<Task> jobs) {
+        String[] args;
+        args = arg.split("_");
+        Utility.log(Utility.LogCls.LOOP, "Start-Task expects 4 but get " + args.length);
+        if (args.length != 4) {
+            ctx.writeAndFlush(new TextWebSocketFrame(
+                    "hint: 'Start-Task Keywords_IntervalSecs_MinPrize_MaxPrize'"));
+        } else {
+            var task = new Task(args[0], Long.valueOf(args[2]), Long.valueOf(args[3]));
+            jobs.add(task);
+            Long intervalSecs = Long.valueOf(args[1]);
+            task.start(intervalSecs);
+            ctx.writeAndFlush(new TextWebSocketFrame(String.format(
+                    "started %4d | %s @ %d", jobs.size() - 1, task, intervalSecs)));
+            task.setArgument(arg);
         }
     }
 }

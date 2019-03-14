@@ -30,6 +30,15 @@ import java.util.stream.IntStream;
  * Some valuable functions.
  */
 public class Utility {
+    public static String genDesc(int number, String singularNoun, String pluralNoun) {
+        return number + " " + (number > 1 ? pluralNoun : singularNoun);
+    }
+
+    public static String genDesc(int number, String noun) {
+        return genDesc(number, noun, noun + "s");
+    }
+
+
     @Nullable
     public static byte[] download(String url) {
         //Utility.stamp("download 0");
