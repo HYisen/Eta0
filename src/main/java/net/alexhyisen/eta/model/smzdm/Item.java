@@ -1,7 +1,5 @@
 package net.alexhyisen.eta.model.smzdm;
 
-import javax.net.ssl.SSLProtocolException;
-
 public class Item {
     private String type;
     private String name;
@@ -59,6 +57,7 @@ public class Item {
         return from;
     }
 
+    @SuppressWarnings("unused")
     public String getTime() {
         return time;
     }
@@ -66,9 +65,5 @@ public class Item {
     @Override
     public String toString() {
         return name + "\n" + time + " # " + type + " | " + from + " @ " + cost + "\n" + desc + "\n";
-    }
-
-    private static void fun() throws SSLProtocolException {
-        throw new SSLProtocolException("Read timed out");
     }
 }

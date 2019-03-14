@@ -109,7 +109,7 @@ public class Task {
                                 from = "N/ A";
                             }
                         default:
-                            Utility.log(Utility.LogCls.SALE, "unhandled type "+type);
+                            Utility.log(Utility.LogCls.SALE, "unhandled type " + type);
                             Utility.log(Utility.LogCls.SALE, "\n" + v);
                     }
                     return new Item(type, name, cost, desc, from, time);
@@ -139,9 +139,21 @@ public class Task {
             }
             Utility.log("succeed to collect data of " + toString());
             return list;
+        } catch (SSLProtocolException e) {
+            e.printStackTrace();
+            if ("Read timed out".equals(e.getMessage())) {
+                Utility.log("read timeout, skip");
+            } else {
+                Utility.log("SSLProtocolException other than timeout in " + toString());
+            }
+            return Collections.emptyList();
+        } catch (HttpStatusException e) {
+            e.printStackTrace();
+            Utility.log("bad HTTP code, skip");
+            return Collections.emptyList();
         } catch (IOException e) {
             e.printStackTrace();
-            Utility.log("failed to collect data of " + toString());
+            Utility.log("because of IOException, failed to collect data of " + toString());
             return Collections.emptyList();
         }
     }
@@ -150,8 +162,8 @@ public class Task {
 
     @SuppressWarnings("WeakerAccess")
     public void run() {
+        var list = collectAll();
         try {
-            var list = collectAll();
             var size = list.size();
             Utility.log(String.format("%8d | ", ++cnt) + this.toString() + " " + "find " + size);
 
@@ -168,39 +180,29 @@ public class Task {
                     ms.send(new Mail(config, key + " # " + size, content));
                 }
             }
-        } catch (SSLProtocolException e) {
-            e.printStackTrace();
-            if ("Read timed out".equals(e.getMessage())) {
-                Utility.log("read timeout, skip");
-            } else {
-                Utility.log("SSLProtocolException not timeout in " + toString());
-            }
-        } catch (HttpStatusException e) {
-            e.printStackTrace();
-            Utility.log("bad HTTP code, skip");
         } catch (IOException e) {
             e.printStackTrace();
-            Utility.log("email fails in " + toString());
+            Utility.log(Utility.LogCls.MAIL, "email fails in " + toString());
         } catch (Exception e) {
             e.printStackTrace();
             Utility.log("unpredicted exception, swallow & skip");
         }
     }
 
-    public void start(long intervalSecs) {
-        Utility.log("start " + toString() +
-                " at interval " + intervalSecs + " sec" + (intervalSecs > 1 ? "" : "s"));
+    public void start(long delaySecs) {
+        Utility.log(Utility.LogCls.INFO, "start " + toString() +
+                " with delay " + delaySecs + " sec" + (delaySecs > 1 ? "" : "s"));
         if (handle != null) {
             Utility.log("kill already started one");
             stop();
         }
         handle = Executors.newSingleThreadScheduledExecutor();
-        handle.scheduleWithFixedDelay(this::run, 0, intervalSecs, TimeUnit.SECONDS);
+        handle.scheduleWithFixedDelay(this::run, 0, delaySecs, TimeUnit.SECONDS);
     }
 
     public void stop() {
         if (handle != null) {
-            Utility.log("stop " + toString());
+            Utility.log(Utility.LogCls.INFO, "stop " + toString());
             handle.shutdown();
             handle = null;
         }
