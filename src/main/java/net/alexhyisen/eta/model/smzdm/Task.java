@@ -108,6 +108,7 @@ public class Task {
                             } catch (IndexOutOfBoundsException e) {
                                 from = "N/ A";
                             }
+                            break;
                         default:
                             Utility.log(Utility.LogCls.SALE, "unhandled type " + type);
                             Utility.log(Utility.LogCls.SALE, "\n" + v);
