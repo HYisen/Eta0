@@ -217,7 +217,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
     private static void manageTaskArg(ChannelHandlerContext ctx, String arg, List<Task> jobs) {
         String[] args;
         args = arg.split("_");
-        Utility.log(Utility.LogCls.LOOP, "Start-Task expects 4 but get " + args.length);
+        Utility.log(Utility.LogCls.LOOP, "Start-Task expects 4 and get " + args.length);
         if (args.length != 4) {
             ctx.writeAndFlush(new TextWebSocketFrame(
                     "hint: 'Start-Task Keywords_IntervalSecs_MinPrize_MaxPrize'"));
