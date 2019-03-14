@@ -1,6 +1,7 @@
 package net.alexhyisen.eta.model.mailer;
 
 import net.alexhyisen.eta.model.Config;
+import net.alexhyisen.eta.model.Utility;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -20,6 +21,7 @@ public class MailService {
 
     private String indent;
 
+    @SuppressWarnings("WeakerAccess")
     public MailService(String client, String server, String username, String password, String indent) {
         this.client = client;
         this.server = server;
@@ -46,18 +48,19 @@ public class MailService {
         this.server = server;
     }
 
+    @SuppressWarnings("unused")
     public void setUsername(String username) {
         this.username = username;
     }
 
+    @SuppressWarnings("unused")
     public void setPassword(String password) {
         this.password = password;
     }
 
     private boolean passCheckpoint(String orig, String code, String msg) {
         if (!orig.startsWith(code)) {
-            System.out.println("failed to pass checkpoint " + code + " " + msg +
-                    "\nbut receive " + orig);
+            Utility.log(Utility.LogCls.MAIL, "\nfailed to pass checkpoint " + code + " " + msg + "\nbut receive " + orig);
             return false;
         }
         return true;
@@ -71,6 +74,7 @@ public class MailService {
         }
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean send(Mail mail) throws IOException {
         try (Client client = new NettyClient()) {
             client.link(server, 25);

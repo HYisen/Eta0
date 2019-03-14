@@ -28,13 +28,13 @@ class NettyClient implements Client {
         }
 
         @Override
-        protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) throws Exception {
+        protected void channelRead0(ChannelHandlerContext channelHandlerContext, String s) {
             //Utility.log("Server:"+s);
             lines.add(s);
         }
 
         @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             cause.printStackTrace();
             Utility.log("exception caught in NettyClientHandler");
             ctx.close();
@@ -52,7 +52,7 @@ class NettyClient implements Client {
         }
 
         @Override
-        protected void initChannel(SocketChannel socketChannel) throws Exception {
+        protected void initChannel(SocketChannel socketChannel) {
             ChannelPipeline pipeline = socketChannel.pipeline();
 
             pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
@@ -95,7 +95,7 @@ class NettyClient implements Client {
             }
         }//finish the last sending first if available.
 
-        System.out.println("client: " + content);
+        Utility.log(Utility.LogCls.MAIL, "client: " + content);
         lastWrite = channel.writeAndFlush(content + "\r\n");
     }
 
@@ -103,7 +103,7 @@ class NettyClient implements Client {
     public String receive() throws IOException {
         try {
             String line = lines.take();
-            System.out.println("server: " + line);
+            Utility.log(Utility.LogCls.MAIL, "server: " + line);
             return line;
         } catch (InterruptedException e) {
             throw new IOException(e);
@@ -124,13 +124,6 @@ class NettyClient implements Client {
     }
 
     public static void main(String[] args) throws Exception {
-        Client client = new NettyClient();
-        client.link("localhost", 4444);
-        client.send("Hello");
-        System.out.println("get " + client.receive());
-        System.out.println("get " + client.receive());
-        client.send("Bye.");
-        System.out.println("get " + client.receive());
-        client.close();
+        Client.smokeTest(new NettyClient());
     }
 }

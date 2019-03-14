@@ -1,5 +1,7 @@
 package net.alexhyisen.eta.model.smzdm;
 
+import javax.net.ssl.SSLProtocolException;
+
 public class Item {
     private String type;
     private String name;
@@ -24,6 +26,7 @@ public class Item {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public Item(String type, String name, String cost, String desc, String from, String time) {
         this.type = type;
         this.name = name;
@@ -33,6 +36,7 @@ public class Item {
         this.time = time;
     }
 
+    @SuppressWarnings("unused")
     public String getType() {
         return type;
     }
@@ -41,10 +45,12 @@ public class Item {
         return name;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public String getCost() {
         return cost;
     }
 
+    @SuppressWarnings("unused")
     public String getDesc() {
         return desc;
     }
@@ -62,7 +68,7 @@ public class Item {
         return name + "\n" + time + " # " + type + " | " + from + " @ " + cost + "\n" + desc + "\n";
     }
 
-    public static void main(String[] args) {
-
+    private static void fun() throws SSLProtocolException {
+        throw new SSLProtocolException("Read timed out");
     }
 }

@@ -4,8 +4,10 @@ import net.alexhyisen.eta.model.Config;
 import net.alexhyisen.eta.model.Utility;
 import net.alexhyisen.eta.model.mailer.Mail;
 import net.alexhyisen.eta.model.mailer.MailService;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 
+import javax.net.ssl.SSLProtocolException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,8 +109,8 @@ public class Task {
                                 from = "N/ A";
                             }
                         default:
-                            System.out.println(type);
-                            System.out.println(v);
+                            Utility.log(Utility.LogCls.SALE, "unhandled type "+type);
+                            Utility.log(Utility.LogCls.SALE, "\n" + v);
                     }
                     return new Item(type, name, cost, desc, from, time);
                 })
@@ -135,16 +137,18 @@ public class Task {
             if (!list.isEmpty()) {
                 stamp = list.get(0);
             }
+            Utility.log("succeed to collect data of " + toString());
             return list;
         } catch (IOException e) {
             e.printStackTrace();
-            Utility.log("fail to collect data of " + toString());
+            Utility.log("failed to collect data of " + toString());
             return Collections.emptyList();
         }
     }
 
-     private static long cnt = 0;
+    private static long cnt = 0;
 
+    @SuppressWarnings("WeakerAccess")
     public void run() {
         try {
             var list = collectAll();
@@ -164,9 +168,22 @@ public class Task {
                     ms.send(new Mail(config, key + " # " + size, content));
                 }
             }
+        } catch (SSLProtocolException e) {
+            e.printStackTrace();
+            if ("Read timed out".equals(e.getMessage())) {
+                Utility.log("read timeout, skip");
+            } else {
+                Utility.log("SSLProtocolException not timeout in " + toString());
+            }
+        } catch (HttpStatusException e) {
+            e.printStackTrace();
+            Utility.log("bad HTTP code, skip");
         } catch (IOException e) {
             e.printStackTrace();
             Utility.log("email fails in " + toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Utility.log("unpredicted exception, swallow & skip");
         }
     }
 
@@ -178,7 +195,7 @@ public class Task {
             stop();
         }
         handle = Executors.newSingleThreadScheduledExecutor();
-        handle.scheduleAtFixedRate(this::run, intervalSecs, intervalSecs, TimeUnit.SECONDS);
+        handle.scheduleWithFixedDelay(this::run, 0, intervalSecs, TimeUnit.SECONDS);
     }
 
     public void stop() {

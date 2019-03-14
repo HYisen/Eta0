@@ -1,5 +1,7 @@
 package net.alexhyisen.eta.model.mailer;
 
+import net.alexhyisen.eta.model.Utility;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,10 +17,12 @@ class BasicClient implements Client {
     private PrintWriter out;
     private BufferedReader in;
 
+    @SuppressWarnings("unused")
     public BasicClient(String host, int port) throws IOException {
         link(host, port);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public BasicClient() {
     }
 
@@ -32,14 +36,14 @@ class BasicClient implements Client {
 
     @Override
     public void send(String content) {
-        System.out.println("client: " + content);
+        Utility.log(Utility.LogCls.MAIL, "client: " + content);
         out.println(content);
     }
 
     @Override
     public String receive() throws IOException {
         String line = in.readLine();
-        System.out.println("server: " + line);
+        Utility.log(Utility.LogCls.MAIL, "server: " + line);
         return line;
     }
 
@@ -52,12 +56,6 @@ class BasicClient implements Client {
     }
 
     public static void main(String[] args) throws IOException {
-        Client client = new BasicClient();
-        client.link("localhost", 4444);
-        client.send("Hello");
-        System.out.println("get " + client.receive());
-        System.out.println("get " + client.receive());
-        client.send("Bye.");
-        System.out.println("get " + client.receive());
+        Client.smokeTest(new BasicClient());
     }
 }

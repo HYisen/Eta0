@@ -2,6 +2,7 @@ package net.alexhyisen.eta.model.server;
 
 import io.netty.channel.ChannelFuture;
 import net.alexhyisen.eta.model.Config;
+import net.alexhyisen.eta.model.Utility;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
@@ -17,10 +18,10 @@ public class PushService {
         Config config = new Config();
         config.load();
         Integer port = Integer.valueOf(config.get("port"));
-        System.out.println("port = " + port.toString());
+        Utility.log(Utility.LogCls.INFO, "port = " + port.toString());
         ChannelFuture future = new NettyServer().start(new InetSocketAddress(port));
         future.syncUninterruptibly();
-        System.out.println("launched in " + Duration.between(timestamp, Instant.now()).toMillis() + " ms");
+        Utility.log(Utility.LogCls.INFO, "launched in " + Duration.between(timestamp, Instant.now()).toMillis() + " ms");
     }
 
     public static void main(String[] args) {

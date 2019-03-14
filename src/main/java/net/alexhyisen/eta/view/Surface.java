@@ -58,7 +58,7 @@ public class Surface {
             });
         }
 
-        System.out.println("finished");
+        Utility.log("finished");
     }
 
     //transform Predicate<Integer> to Predicate<String> using Integer.valueOf()
@@ -73,6 +73,7 @@ public class Surface {
         };
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static String getInput(String name, Predicate<String> IsValid) {
         String rtn;
         do {
@@ -82,6 +83,7 @@ public class Surface {
         return rtn;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static <E extends Enum<E>> E getInput(String name, Class<E> enumType) {
         String input;
         E rtn;
@@ -135,12 +137,7 @@ public class Surface {
         System.out.println();
         System.out.println("when facing requirement command =");
         Arrays.stream(Command.values()).forEach(v -> System.out.println(v.toString() + " means " + v.getInfo()));
-        System.out.println("input one of thr previous commands");
-
-        System.out.println();
-        System.out.println("when facing requirement command =");
-        Arrays.stream(Command.values()).forEach(v -> System.out.println(v.toString() + " means " + v.getInfo()));
-        System.out.println("input one of thr previous commands");
+        System.out.println("input one of the previous commands");
 
         System.out.println();
         System.out.println("when facing requirement selected id =");

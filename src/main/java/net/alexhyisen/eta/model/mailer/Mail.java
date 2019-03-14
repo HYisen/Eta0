@@ -16,7 +16,7 @@ public class Mail {
     private final String recipientName;
     private final String recipientAddr;
     private final String subject;
-    private final String content[];
+    private final String[] content;
 
     public Mail(@Nullable String senderName, String senderAddr,
                 @Nullable String recipientName, String recipientAddr,
@@ -57,20 +57,24 @@ public class Mail {
         return content;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public @Nullable
     String getSenderName() {
         return senderName;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public String getSenderAddr() {
         return senderAddr;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public @Nullable
     String getRecipientName() {
         return recipientName;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public String getRecipientAddr() {
         return recipientAddr;
     }

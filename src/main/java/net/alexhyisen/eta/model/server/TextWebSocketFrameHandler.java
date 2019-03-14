@@ -37,7 +37,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
-            System.out.println("HandshakeComplete");
+            Utility.log(Utility.LogCls.LOOP, "HandshakeComplete");
             ctx.pipeline().remove(HttpRequestHandler.class);
             ctx.channel().writeAndFlush(new TextWebSocketFrame("Welcome.\nThis is an ExpServer.\nHave a nice day!"));
             group.writeAndFlush(new TextWebSocketFrame("Client " + ctx.channel() + " joined."));
@@ -49,12 +49,12 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
         }
     }
 
-    static final String TEXT_DELIMITER = "\n";
+//    static final String TEXT_DELIMITER = "\n";
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) {
         String text = msg.text();
-        System.out.println("read text " + text);
+        Utility.log(Utility.LogCls.LOOP, "read text " + text);
 
         int index = text.indexOf(' ');
         if (index != -1) {
@@ -99,7 +99,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     break;
                 case "Start-Task":
                     args = arg.split("_");
-                    System.out.println(args.length);
+                    Utility.log(Utility.LogCls.LOOP, String.valueOf(args.length));
                     if (args.length != 4) {
                         ctx.writeAndFlush(new TextWebSocketFrame(
                                 "hint: 'Start-Task Keywords_IntervalSecs_MinPrize_MaxPrize'"));

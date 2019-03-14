@@ -4,9 +4,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Font;
 import javafx.util.converter.IntegerStringConverter;
+import net.alexhyisen.eta.model.Config;
+import net.alexhyisen.eta.model.Utility;
 import net.alexhyisen.eta.model.catcher.Book;
 import net.alexhyisen.eta.model.catcher.Chapter;
-import net.alexhyisen.eta.model.Config;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,6 +48,7 @@ public class PageController {
         this.config = config;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void refresh() {
         codeLabel.setText(String.valueOf(chapter.getCode()));
         bookLabel.setText(book.getName());
@@ -93,7 +95,7 @@ public class PageController {
         List<Chapter> chapters = book.getChapters();
         if (chapters.lastIndexOf(chapter) == chapters.size() - 1) {
             nextButton.setDisable(true);
-            System.out.println("set next button disabled");
+            Utility.log("set next button disabled");
         }
     }
 

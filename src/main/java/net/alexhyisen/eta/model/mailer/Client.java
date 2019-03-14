@@ -16,11 +16,22 @@ interface Client extends Closeable {
 
     String receive() throws IOException;
 
+    @SuppressWarnings("UnusedReturnValue")
     default List<String> receive(int times) throws IOException {
         List<String> rtn = new LinkedList<>();
         for (int k = 0; k != times; k++) {
             rtn.add(receive());
         }
         return rtn;
+    }
+
+    static void smokeTest(Client client) throws IOException {
+        client.link("localhost", 4444);
+        client.send("Hello");
+        System.out.println("get " + client.receive());
+        System.out.println("get " + client.receive());
+        client.send("Bye.");
+        System.out.println("get " + client.receive());
+        client.close();
     }
 }

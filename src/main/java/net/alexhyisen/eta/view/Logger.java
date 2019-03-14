@@ -34,7 +34,7 @@ class Logger {
     }
 
     private void handleMsgLabelAction(MouseEvent e) {
-        System.out.println("label clicked");
+        Utility.log("label clicked");
         if (cm != null && cm.isShowing()) {
             cm.hide();
         } else {

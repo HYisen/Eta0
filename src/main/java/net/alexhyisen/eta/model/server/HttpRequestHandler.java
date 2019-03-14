@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioFile;
+import net.alexhyisen.eta.model.Utility;
 import net.alexhyisen.eta.model.catcher.Book;
 
 import java.io.RandomAccessFile;
@@ -29,11 +30,11 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-        System.out.println("get request to " + request.uri());
+        Utility.log(Utility.LogCls.LOOP, "get request to " + request.uri());
         String[] path = request.uri().split("/");
         if (mark.equalsIgnoreCase(request.uri())) {
             ctx.fireChannelRead(request.retain());
-            System.out.println("pass to WebSocket");
+            Utility.log(Utility.LogCls.LOOP, "pass to WebSocket");
         } else if (request.method().equals(HttpMethod.GET) &&
                 path.length >= 2 && path[1].equals("db")) {
             //The traditional solution may be faster.
@@ -88,7 +89,7 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             }
 
             //manage default homepage response
-            System.out.println("generate index");
+            Utility.log(Utility.LogCls.LOOP, "generate index");
             RandomAccessFile file = new RandomAccessFile(INDEX_PAGE_PATH, "r");
             HttpResponse response = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.OK);
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
@@ -98,16 +99,16 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                 response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
             }
             ctx.write(response);
-            System.out.println("write response header");
+            Utility.log(Utility.LogCls.LOOP, "write response header");
             //a better index page cache strategy could be used there
             if (ctx.pipeline().get(SslHandler.class) == null) {
                 ctx.write(new DefaultFileRegion(file.getChannel(), 0, file.length()));
-                System.out.println("write index.html size = " + file.length());
+                Utility.log(Utility.LogCls.LOOP, "write index.html size = " + file.length());
             } else {
                 ctx.write(new ChunkedNioFile((file.getChannel())));
             }
             ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-            System.out.println("transmit finished");
+            Utility.log(Utility.LogCls.LOOP, "transmit finished");
             if (!keepAlive) {
                 future.addListener(ChannelFutureListener.CLOSE);
             }
@@ -115,7 +116,7 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }

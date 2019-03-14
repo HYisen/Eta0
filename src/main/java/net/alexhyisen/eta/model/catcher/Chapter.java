@@ -30,6 +30,7 @@ public class Chapter {
         return new String(rtn);
     }
 
+    @SuppressWarnings({"WeakerAccess", "unused"})
     static void expand(Node node, int depth) {
         NodeList subs = node.getChildNodes();
 
@@ -63,6 +64,7 @@ public class Chapter {
 
     //a whole deepest search
     //for parallel optimization, I can not use the strategy that searches one by one.
+    @SuppressWarnings("WeakerAccess")
     static List<Node> search(Node root, String name) {
         List<Node> rtn = new LinkedList<>();
         if (name.equals(root.getNodeName())) {
@@ -78,6 +80,7 @@ public class Chapter {
         return rtn;
     }
 
+    @SuppressWarnings("WeakerAccess")
     @Nullable
     static Node findOne(@Nullable Node from, String name) {
         if (from != null) {
@@ -91,6 +94,7 @@ public class Chapter {
         return null;
     }
 
+    @SuppressWarnings("unused")
     static List<Node> findAll(@Nullable Node from, String name) {
         List<Node> rtn = new ArrayList<>();//LL is cheaper, but AL is better for parallel optimization.
         Node one = findOne(from, name);
@@ -102,6 +106,7 @@ public class Chapter {
     }
 
     //the name of root is exclusive in the path
+    @SuppressWarnings("WeakerAccess")
     @Nullable
     static Node getNode(@Nullable Node root, String... path) {
         Node one = root;
@@ -113,21 +118,25 @@ public class Chapter {
         return one;
     }
 
+    @SuppressWarnings("unused")
     static Optional<Node> getNodeOptional(@Nullable Node root, String... path) {
         return Optional.ofNullable(getNode(root, path));
     }
 
+    @SuppressWarnings("unused")
     static void setValue(Node target, String value) {
         assert target.getChildNodes().getLength() == 1;
         target.getFirstChild().setNodeValue(value);
     }
 
+    @SuppressWarnings("WeakerAccess")
     @Nullable
     static String getValue(Node source) {
         assert source.getChildNodes().getLength() == 1;
         return source.getFirstChild().getNodeValue();
     }
 
+    @SuppressWarnings("unused")
     static Optional<String> getValueOptional(@Nullable Node source) {
         if (source == null) {
             return Optional.empty();
@@ -136,7 +145,7 @@ public class Chapter {
         }
     }
 
-    static DocumentBuilder db;
+    private static DocumentBuilder db;
 
     static {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -157,6 +166,7 @@ public class Chapter {
      * @return  the content Node, or
      *          {@code null} if failed to select.
      */
+    @SuppressWarnings("WeakerAccess")
     static Node select(byte[] source) {
         try {
             Document doc = db.parse(new ByteArrayInputStream(source));
@@ -164,7 +174,7 @@ public class Chapter {
 
             Optional<Map.Entry<Node, Long>> result;
             result = searchRichestNode(doc, "br");
-            if (!result.isPresent()) {
+            if (result.isEmpty()) {
                 //some have multiple <p> rather than <br>
                 //like "https://www.miaobige.com/read/17843/11958498.html"
                 result = searchRichestNode(doc, "p");
@@ -241,6 +251,7 @@ public class Chapter {
         return name;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public Future<byte[]> getRaw() {
         return raw;
     }
@@ -293,6 +304,7 @@ public class Chapter {
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void download(Executor exec) {
         if (!cached) {
             raw = CompletableFuture.supplyAsync(() -> Utility.download(source), exec);
@@ -301,12 +313,14 @@ public class Chapter {
 
     //cached means whether the data has already been downloaded and stored in local disk,
     //which also implies that it has been mailed to user.
+    @SuppressWarnings("WeakerAccess")
     public boolean isCached() {
         return cached;
     }
 
     //loaded only indicate whether you can get the data offline rather than online,
     //which can not only occurred by a file in local disk, but also a temp in memory.
+    @SuppressWarnings("unused")
     public boolean isLoaded() {
         return isCached() || raw != null;
     }
@@ -315,6 +329,7 @@ public class Chapter {
         return path;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean write() {
         try {
             if (!isCached()) {
