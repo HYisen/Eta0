@@ -2,7 +2,9 @@ package net.alexhyisen.eta.model;
 
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -52,5 +54,13 @@ public class UtilityTest {
         es0.shutdown();
         es0.awaitTermination(10, TimeUnit.SECONDS);
         Utility.stamp("neo");
+
+        //Benchmark Advanced
+        ExecutorService es2 = Executors.newFixedThreadPool(4);
+        var rand = new Random(17);
+        var in = IntStream.range(0, 1000000).map(v -> rand.nextInt(20)).toArray();
+        Utility.stamp("initialized");
+        Arrays.stream(in).forEach(v -> es2.submit(() -> neo.apply(v)));
+        Utility.stamp("finished");
     }
 }

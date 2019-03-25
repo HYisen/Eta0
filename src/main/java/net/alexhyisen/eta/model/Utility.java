@@ -140,6 +140,11 @@ public class Utility {
     //collections.defaultdict or @lru_cache in Python, laziness is a virtue.
     //Thread Safe. How simple it would be if only I have a Global Interpreter Lock.
     //While a global static SingleThreadExecutor is also a potential reasonable solution.
+    //
+    //Well, must adopt that ConcurrentHashMap::computeIfAbsent is the simplest and therefore the best answer,
+    //I just skipped it when looking for a solution at that time.
+    //Under benchmark of 10M query of 20 random key, there is only <1% difference in average cost time.
+    //I keep my redundant implement of the identical interface just in memory of the youth.
     @SuppressWarnings("WeakerAccess")
     public static <K, V> Function<K, V> genCachedMapper(Map<K, V> inner, Function<K, V> mapper) {
         return new Function<>() {
