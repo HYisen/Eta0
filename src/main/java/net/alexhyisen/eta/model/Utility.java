@@ -162,6 +162,9 @@ public class Utility {
                         if (value == null) {
                             value = mapper.apply(k);
                             inner.put(k, value);
+                            //WARNING
+                            //If Map::put is not atomic enough,
+                            //parallel get on put may be corrupted.
                         }
                     } finally {
                         //Is a LockGuard implements Closeable that enable try with resources better?
