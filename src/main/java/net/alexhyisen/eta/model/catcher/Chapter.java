@@ -8,13 +8,19 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.annotation.Nullable;
-import javax.xml.parsers.*;
-import java.io.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -304,7 +310,6 @@ public class Chapter {
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public void download(Executor exec) {
         if (!cached) {
             raw = CompletableFuture.supplyAsync(() -> Utility.download(source), exec);
@@ -329,7 +334,6 @@ public class Chapter {
         return path;
     }
 
-    @SuppressWarnings("WeakerAccess")
     public boolean write() {
         try {
             if (!isCached()) {
