@@ -80,9 +80,30 @@ public class Utility {
         return clean(download(url));
     }
 
+    private static String findCharset(TagNode tg) {
+        TagNode node;
+
+        //for <meta http-equiv="Content-Type" content="text/html; charset=gbk">
+        final String KEY = "charset=";
+        node = tg.findElementByAttValue(
+                "http-equiv", "Content-Type", true, false);
+        if (node != null) {
+            String content = node.getAttributeByName("content");
+            return content.substring(content.indexOf(KEY) + KEY.length());
+        }
+
+        //for <meta charset="gbk">
+        node = tg.findElementHavingAttribute("charset", true);
+        if (node != null) {
+            return node.getAttributeByName("charset");
+        }
+
+        return "UTF-8";
+    }
+
     @Nullable
     public static byte[] clean(@Nullable byte[] source) {
-        //Utility.stamp("clean start");
+//        Utility.stamp("clean start");
         if (source == null) {
             return null;
         }
@@ -98,33 +119,23 @@ public class Utility {
         try {
             //cleaner.clean(new URL(url)) failed to get the correct charset.
             //page "http://www.fhxiaoshuo.com/read/67/67220/" as an example.
-            //Utility.stamp("clean 0");
+//            Utility.stamp("clean 0");
             tg = cleaner.clean(new ByteArrayInputStream(source));
-            //Utility.stamp("clean 1");
+//            Utility.stamp("clean 1");
 
-            //Utility.stamp("check 0");
-            final String KEY = "charset=";
-            TagNode node = tg
-                    .findElementByAttValue("http-equiv", "Content-Type", true, false);
-            String charset;
-            if (node != null) {
-                String content = node.getAttributeByName("content");
-                charset = content.substring(content.indexOf(KEY) + KEY.length());
-            } else {
-                charset = "UTF-8";
-            }
-
-            //System.out.println("charset = "+charset+" | "+props.getCharset());
+//            Utility.stamp("check 0");
+            String charset = findCharset(tg);
+//            Utility.log(LogCls.BOOK, "charset = " + charset + " | " + props.getCharset());
             if (!"utf-8".equalsIgnoreCase(charset)) {
                 tg = cleaner.clean(new ByteArrayInputStream(source), charset);
             }
-            //Utility.stamp("check 1");
+//            Utility.stamp("check 1");
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
 
-        //Utility.stamp("output 0");
+//        Utility.stamp("output 0");
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
             new PrettyXmlSerializer(props).writeToStream(tg, os, "utf-8");
@@ -132,7 +143,7 @@ public class Utility {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-        //Utility.stamp("output 1");
+//        Utility.stamp("output 1");
         return os.toByteArray();
     }
 
