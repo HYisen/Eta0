@@ -28,6 +28,8 @@ public class Task {
     private static Config config;
     private static MailService ms;
 
+    private static final int MAX_PAGE = 20;
+
     static {
         config = new Config();
         config.load();
@@ -60,6 +62,7 @@ public class Task {
         var url = genUrl(page);
 //        System.out.println("url = " + url);
         var document = Jsoup.connect(url).get();
+        Utility.log(Utility.LogCls.SALE, String.format("download %s with %d", url, document.wholeText().length()));
 //        System.out.println("title = " + document.title());
         var elements = document.getElementsByClass("feed-block z-hor-feed");
 
@@ -77,7 +80,10 @@ public class Task {
                     String cost = "";
                     String desc = v.child(1).child(1).text();
                     String from = "";
-                    String time = v.child(1).child(2).child(1).getElementsByClass("feed-block-extras").text();
+                    String time = v.child(1).child(2).child(1)
+                            .getElementsByClass("feed-block-extras")
+                            .first().ownText();
+                    String href = v.child(1).child(0).child(0).attr("href");
                     switch (type) {
                         case "极速发":
                         case "好价频道":
@@ -113,7 +119,7 @@ public class Task {
                             Utility.log(Utility.LogCls.SALE, "unhandled type " + type);
                             Utility.log(Utility.LogCls.SALE, "\n" + v);
                     }
-                    return new Item(type, name, cost, desc, from, time);
+                    return new Item(type, name, cost, desc, from, time, href);
                 })
 //                .peek(System.out::println)
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -130,6 +136,17 @@ public class Task {
                 } else {
                     List<Item> more;
                     while (!(more = collectOne(++page)).contains(stamp)) {
+                        if (page >= MAX_PAGE) {
+                            Utility.log(Utility.LogCls.SALE, "reach max page, abort current routine.\n" +
+                                    "target item : " + stamp +
+                                    "\nsubstitute item 0 :\n" + list.get(0) +
+                                    "\nsubstitute item 1 :\n" + list.get(1) +
+                                    "\nsubstitute item 2 :\n" + list.get(2));
+                            stamp = list.get(0);//set stamp to first item
+                            list.clear();
+                            more.clear();
+                            break;
+                        }
                         list.addAll(more);
                     }
                     more.stream().takeWhile(v -> !v.equals(stamp)).forEach(list::add);
@@ -138,23 +155,23 @@ public class Task {
             if (!list.isEmpty()) {
                 stamp = list.get(0);
             }
-            Utility.log("succeed to collect data of " + toString());
+            Utility.log(Utility.LogCls.SALE, "succeed to collect data of " + toString());
             return list;
         } catch (SSLProtocolException e) {
             e.printStackTrace();
             if ("Read timed out".equals(e.getMessage())) {
-                Utility.log("read timeout, skip");
+                Utility.log(Utility.LogCls.SALE, "read timeout, skip");
             } else {
-                Utility.log("SSLProtocolException other than timeout in " + toString());
+                Utility.log(Utility.LogCls.SALE, "SSLProtocolException other than timeout in " + toString());
             }
             return Collections.emptyList();
         } catch (HttpStatusException e) {
             e.printStackTrace();
-            Utility.log("bad HTTP code, skip");
+            Utility.log(Utility.LogCls.SALE, "bad HTTP code, skip");
             return Collections.emptyList();
         } catch (IOException e) {
             e.printStackTrace();
-            Utility.log("because of IOException, failed to collect data of " + toString());
+            Utility.log(Utility.LogCls.SALE, "because of IOException, failed to collect data of " + toString());
             return Collections.emptyList();
         }
     }

@@ -7,6 +7,18 @@ public class Item {
     private String desc;
     private String from;
     private String time;
+    private String href;
+
+    @SuppressWarnings("WeakerAccess")
+    public Item(String type, String name, String cost, String desc, String from, String time, String href) {
+        this.type = type;
+        this.name = name;
+        this.cost = cost;
+        this.desc = desc;
+        this.from = from;
+        this.time = time;
+        this.href = href;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -15,23 +27,14 @@ public class Item {
             return false;
         } else {
             Item orig = (Item) obj;
-            return orig.time.equals(this.time) &&
-                    orig.name.equals(this.name) &&
+            return orig.name.equals(this.name) &&
+//                    orig.time.equals(this.time) && //time changes as today's become yesterday's
 //                    orig.type.equals(this.type) && //type may change as item becomes invalid
                     orig.cost.equals(this.cost) &&
                     orig.from.equals(this.from) &&
-                    orig.desc.equals(this.desc);
+                    orig.desc.equals(this.desc) &&
+                    orig.href.equals(this.href);
         }
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    public Item(String type, String name, String cost, String desc, String from, String time) {
-        this.type = type;
-        this.name = name;
-        this.cost = cost;
-        this.desc = desc;
-        this.from = from;
-        this.time = time;
     }
 
     @SuppressWarnings("unused")
@@ -62,8 +65,13 @@ public class Item {
         return time;
     }
 
+    @SuppressWarnings("unused")
+    public String getHref() {
+        return href;
+    }
+
     @Override
     public String toString() {
-        return name + "\n" + time + " # " + type + " | " + from + " @ " + cost + "\n" + desc + "\n";
+        return name + "\n" + time + " # " + type + " | " + from + " @ " + cost + "\n" + desc + "\n" + href + "\n";
     }
 }
