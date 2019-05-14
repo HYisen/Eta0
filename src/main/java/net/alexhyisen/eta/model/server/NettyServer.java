@@ -73,7 +73,7 @@ class NettyServer implements Closeable {
                                 .addLast(new HttpObjectAggregator(65536))
                                 .addLast(new HttpRequestHandler("/ws", data, web))
                                 .addLast("ws", new WebSocketServerProtocolHandler("/ws"))
-                                .addLast(new TextWebSocketFrameHandler(data, jobs, channelGroup, self));
+                                .addLast(new TextWebSocketFrameHandler(data, jobs, web, channelGroup, self));
                     }
                 });
         return bootstrap.bind(address);

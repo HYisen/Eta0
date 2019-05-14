@@ -32,6 +32,7 @@ import java.util.stream.IntStream;
 class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
     private List<Book> data;
     private List<Task> jobs;
+    private Web web;
     private final ChannelGroup group;
     private final Closeable shutdownHandler;
     //a singleton retriever ExecutorService used to do the disk IO jobs.
@@ -40,9 +41,10 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
     private static Path JOBS_SAVE_PATH = Path.of(".", "jobs");
 
 
-    TextWebSocketFrameHandler(List<Book> data, List<Task> jobs, ChannelGroup group, Closeable shutdownHandler) {
+    TextWebSocketFrameHandler(List<Book> data, List<Task> jobs, Web web, ChannelGroup group, Closeable shutdownHandler) {
         this.data = data;
         this.jobs = jobs;
+        this.web = web;
         this.group = group;
         this.shutdownHandler = shutdownHandler;
     }
@@ -168,6 +170,15 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     data.clear();//Remember, data doesn't belong to this.
                     data.addAll(source.getData());
                     ctx.writeAndFlush(new TextWebSocketFrame("reloaded"));
+                    break;
+                case "rescan":
+                    try {
+                        web.load();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Utility.log(Utility.LogCls.LOOP, "failed to rescan");
+                    }
+                    ctx.writeAndFlush(new TextWebSocketFrame("complete"));
                     break;
                 case "balus":
                     final String info = "shutdown as " + ctx.channel() + " required.";
