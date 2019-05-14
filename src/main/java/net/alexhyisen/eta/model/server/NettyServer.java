@@ -42,11 +42,19 @@ class NettyServer implements Closeable {
     private List<Book> data;
     private List<Task> jobs = new ArrayList<>();
     private NettyServer self = this;
+    private Web web;
 
     private void init() {
         Source source = new Source();
         source.load(Paths.get("sourceAll"));
         data = source.getData();
+        try {
+            web = new Web();
+            web.load();
+        } catch (IOException e) {
+            Utility.log(Utility.LogCls.LOOP, "failed to load web resources");
+            e.printStackTrace();
+        }
 //        data.forEach(Book::open);
 //        System.out.println("all books are opened.");
     }
@@ -63,7 +71,7 @@ class NettyServer implements Closeable {
                                 .addLast(new HttpServerCodec())
                                 .addLast(new ChunkedWriteHandler())
                                 .addLast(new HttpObjectAggregator(65536))
-                                .addLast(new HttpRequestHandler("/ws", data))
+                                .addLast(new HttpRequestHandler("/ws", data, web))
                                 .addLast("ws", new WebSocketServerProtocolHandler("/ws"))
                                 .addLast(new TextWebSocketFrameHandler(data, jobs, channelGroup, self));
                     }

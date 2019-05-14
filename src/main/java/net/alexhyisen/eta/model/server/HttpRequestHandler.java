@@ -19,13 +19,12 @@ import java.util.List;
 class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final String mark;
     private List<Book> data;
+    private Web web;
 
-    private static final String INDEX_PAGE_PATH =
-            "E:\\TEMP\\Eta\\index.html";
-
-    HttpRequestHandler(String mark, List<Book> data) {
+    HttpRequestHandler(String mark, List<Book> data, Web web) {
         this.mark = mark;
         this.data = data;
+        this.web = web;
     }
 
     @Override
@@ -88,29 +87,40 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                 ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
             }
 
-            //manage default homepage response
-            Utility.log(Utility.LogCls.LOOP, "generate index");
-            RandomAccessFile file = new RandomAccessFile(INDEX_PAGE_PATH, "r");
-            HttpResponse response = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.OK);
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
-            boolean keepAlive = HttpUtil.isKeepAlive(request);
-            if (keepAlive) {
-                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
-                response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-            }
-            ctx.write(response);
-            Utility.log(Utility.LogCls.LOOP, "write response header");
-            //a better index page cache strategy could be used there
-            if (ctx.pipeline().get(SslHandler.class) == null) {
-                ctx.write(new DefaultFileRegion(file.getChannel(), 0, file.length()));
-                Utility.log(Utility.LogCls.LOOP, "write index.html size = " + file.length());
-            } else {
-                ctx.write(new ChunkedNioFile((file.getChannel())));
-            }
-            ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-            Utility.log(Utility.LogCls.LOOP, "transmit finished");
-            if (!keepAlive) {
-                future.addListener(ChannelFutureListener.CLOSE);
+            var data = web.get(request.uri());
+            if (data.isPresent()) {
+                RandomAccessFile file = data.get();
+                HttpResponse response = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.OK);
+                if (request.uri().endsWith(".css")) {
+                    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/css; charset=utf-8");
+                } else if (request.uri().endsWith(".js")) {
+                    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/javascript; charset=utf-8");
+                } else if (request.uri().endsWith(".ico")) {
+                    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "image/x-icon; charset=utf-8");
+                } else if (request.uri().endsWith(".json")) {
+                    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=utf-8");
+                } else {
+                    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
+                }
+                boolean keepAlive = HttpUtil.isKeepAlive(request);
+                if (keepAlive) {
+                    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
+                    response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+                }
+                ctx.write(response);
+                Utility.log(Utility.LogCls.LOOP, "write response header");
+                //a better cache strategy could be used there
+                if (ctx.pipeline().get(SslHandler.class) == null) {
+                    ctx.write(new DefaultFileRegion(file.getChannel(), 0, file.length()));
+                    Utility.log(Utility.LogCls.LOOP, "write size = " + file.length());
+                } else {
+                    ctx.write(new ChunkedNioFile((file.getChannel())));
+                }
+                ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                Utility.log(Utility.LogCls.LOOP, "transmit finished");
+                if (!keepAlive) {
+                    future.addListener(ChannelFutureListener.CLOSE);
+                }
             }
         }
     }
