@@ -235,7 +235,7 @@ public class Utility {
         }
 
         LogCls(String desc) {
-            this(desc, "log_" + desc);
+            this(desc, desc + "_log");
         }
 
         public String getDesc() {
