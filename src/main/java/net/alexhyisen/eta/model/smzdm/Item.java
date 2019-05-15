@@ -27,13 +27,13 @@ public class Item {
             return false;
         } else {
             Item orig = (Item) obj;
-            return orig.name.equals(this.name) &&
+            return orig.href.equals(this.href) &&
+//                    orig.name.equals(this.name) && //name changes when a prediction matured
 //                    orig.time.equals(this.time) && //time changes as today's become yesterday's
 //                    orig.type.equals(this.type) && //type may change as item becomes invalid
                     orig.cost.equals(this.cost) &&
                     orig.from.equals(this.from) &&
-                    orig.desc.equals(this.desc) &&
-                    orig.href.equals(this.href);
+                    orig.desc.equals(this.desc);
         }
     }
 
