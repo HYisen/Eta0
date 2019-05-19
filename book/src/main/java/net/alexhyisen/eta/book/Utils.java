@@ -1,6 +1,7 @@
 package net.alexhyisen.eta.book;
 
 import net.alexhyisen.Utility;
+import net.alexhyisen.log.LogCls;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.PrettyXmlSerializer;
@@ -16,7 +17,7 @@ import java.net.URLConnection;
 
 public class Utils {
     @Nullable
-    public static byte[] download(String url) {
+    static byte[] download(String url) {
         //Utility.stamp("download 0");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         InputStream is = null;
@@ -45,7 +46,7 @@ public class Utils {
         //Utility.stamp("download 1");
         byte[] data = baos.toByteArray();
         if (data.length < 1000) {
-            Utility.log(Utility.LogCls.BOOK, "data is suspiciously small from " + url);
+            Utility.log(LogCls.BOOK, "data is suspiciously small from " + url);
         }
         return data;
     }
@@ -78,7 +79,7 @@ public class Utils {
     }
 
     @Nullable
-    public static byte[] clean(@Nullable byte[] source) {
+    static byte[] clean(@Nullable byte[] source) {
 //        Utility.stamp("clean start");
         if (source == null) {
             return null;

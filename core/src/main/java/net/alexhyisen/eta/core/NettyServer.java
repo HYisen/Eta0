@@ -22,6 +22,7 @@ import net.alexhyisen.Web;
 import net.alexhyisen.eta.book.Book;
 import net.alexhyisen.eta.book.Source;
 import net.alexhyisen.eta.sale.Task;
+import net.alexhyisen.log.LogCls;
 
 import javax.net.ssl.SSLException;
 import java.io.Closeable;
@@ -53,7 +54,7 @@ class NettyServer implements Closeable {
             web = new Web();
             web.load();
         } catch (IOException e) {
-            Utility.log(Utility.LogCls.LOOP, "failed to load web resources");
+            Utility.log(LogCls.LOOP, "failed to load web resources");
             e.printStackTrace();
         }
 //        data.forEach(Book::open);
@@ -88,9 +89,10 @@ class NettyServer implements Closeable {
             e.printStackTrace();
             throw new IOException(e);
         }
-        Utility.log(Utility.LogCls.LOOP, "ChannelGroup cleaned.");
+        Utility.log(LogCls.LOOP, "ChannelGroup cleaned.");
         eventGroup.shutdownGracefully();
-        Utility.log(Utility.LogCls.INFO, "final");
+        Utility.log(LogCls.INFO, "final");
+        Utility.shutdownGlobally();
     }
 
     @SuppressWarnings("unused")

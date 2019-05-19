@@ -2,6 +2,7 @@ package net.alexhyisen.eta.mail;
 
 import net.alexhyisen.Config;
 import net.alexhyisen.Utility;
+import net.alexhyisen.log.LogCls;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public class MailService {
 
     private boolean passCheckpoint(String orig, String code, String msg) {
         if (!orig.startsWith(code)) {
-            Utility.log(Utility.LogCls.MAIL, "\nfailed to pass checkpoint " + code + " " + msg + "\nbut receive " + orig);
+            Utility.log(LogCls.MAIL, "\nfailed to pass checkpoint " + code + " " + msg + "\nbut receive " + orig);
             return false;
         }
         return true;

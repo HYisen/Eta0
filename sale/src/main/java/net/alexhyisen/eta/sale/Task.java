@@ -4,6 +4,7 @@ import net.alexhyisen.Config;
 import net.alexhyisen.Utility;
 import net.alexhyisen.eta.mail.Mail;
 import net.alexhyisen.eta.mail.MailService;
+import net.alexhyisen.log.LogCls;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 
@@ -42,6 +43,7 @@ public class Task {
         this.maxPrize = maxPrize;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public Task(String key) {
         this.key = key;
     }
@@ -62,7 +64,7 @@ public class Task {
         var url = genUrl(page);
 //        System.out.println("url = " + url);
         var document = Jsoup.connect(url).get();
-        Utility.log(Utility.LogCls.SALE, String.format("download %s with %d", url, document.wholeText().length()));
+        Utility.log(LogCls.SALE, String.format("download %s with %d", url, document.wholeText().length()));
 //        System.out.println("title = " + document.title());
         var elements = document.getElementsByClass("feed-block z-hor-feed");
 
@@ -116,8 +118,8 @@ public class Task {
                             }
                             break;
                         default:
-                            Utility.log(Utility.LogCls.SALE, "unhandled type " + type);
-                            Utility.log(Utility.LogCls.SALE, "\n" + v);
+                            Utility.log(LogCls.SALE, "unhandled type " + type);
+                            Utility.log(LogCls.SALE, "\n" + v);
                     }
                     return new Item(type, name, cost, desc, from, time, href);
                 })
@@ -137,7 +139,7 @@ public class Task {
                     List<Item> more;
                     while (!(more = collectOne(++page)).contains(stamp)) {
                         if (page >= MAX_PAGE) {
-                            Utility.log(Utility.LogCls.SALE, "reach max page, abort current routine.\n" +
+                            Utility.log(LogCls.SALE, "reach max page, abort current routine.\n" +
                                     "target item : " + stamp +
                                     "\nsubstitute item 0 :\n" + list.get(0) +
                                     "\nsubstitute item 1 :\n" + list.get(1) +
@@ -155,23 +157,23 @@ public class Task {
             if (!list.isEmpty()) {
                 stamp = list.get(0);
             }
-            Utility.log(Utility.LogCls.SALE, "succeed to collect data of " + toString());
+            Utility.log(LogCls.SALE, "succeed to collect data of " + toString());
             return list;
         } catch (SSLProtocolException e) {
             e.printStackTrace();
             if ("Read timed out".equals(e.getMessage())) {
-                Utility.log(Utility.LogCls.SALE, "read timeout, skip");
+                Utility.log(LogCls.SALE, "read timeout, skip");
             } else {
-                Utility.log(Utility.LogCls.SALE, "SSLProtocolException other than timeout in " + toString());
+                Utility.log(LogCls.SALE, "SSLProtocolException other than timeout in " + toString());
             }
             return Collections.emptyList();
         } catch (HttpStatusException e) {
             e.printStackTrace();
-            Utility.log(Utility.LogCls.SALE, "bad HTTP code, skip");
+            Utility.log(LogCls.SALE, "bad HTTP code, skip");
             return Collections.emptyList();
         } catch (IOException e) {
             e.printStackTrace();
-            Utility.log(Utility.LogCls.SALE, "because of IOException, failed to collect data of " + toString());
+            Utility.log(LogCls.SALE, "because of IOException, failed to collect data of " + toString());
             return Collections.emptyList();
         }
     }
@@ -188,7 +190,7 @@ public class Task {
                     ++localCount, globalCount.addAndGet(1), this.toString(), size));
 
             if (localCount == 1) {
-                Utility.log(Utility.LogCls.SALE, String.format("skip the first scan of %s with %s",
+                Utility.log(LogCls.SALE, String.format("skip the first scan of %s with %s",
                         this.toString(), Utility.genDesc(size, "result")));
             } else {
                 if (size != 0) {
@@ -207,7 +209,7 @@ public class Task {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Utility.log(Utility.LogCls.MAIL, "email fails in " + toString());
+            Utility.log(LogCls.MAIL, "email fails in " + toString());
         } catch (Exception e) {
             e.printStackTrace();
             Utility.log("unpredicted exception, swallow & skip");
@@ -215,10 +217,10 @@ public class Task {
     }
 
     public void start(long delaySecs) {
-        Utility.log(Utility.LogCls.INFO, "start " + toString() +
+        Utility.log(LogCls.INFO, "start " + toString() +
                 " with delay " + delaySecs + " sec" + (delaySecs > 1 ? "" : "s"));
         if (handle != null) {
-            Utility.log(Utility.LogCls.SALE, "kill already started one");
+            Utility.log(LogCls.SALE, "kill already started one");
             stop();
         }
         handle = Executors.newSingleThreadScheduledExecutor();
@@ -227,7 +229,7 @@ public class Task {
 
     public void stop() {
         if (handle != null) {
-            Utility.log(Utility.LogCls.SALE, "stop " + toString());
+            Utility.log(LogCls.SALE, "stop " + toString());
             handle.shutdown();
             handle = null;
         }

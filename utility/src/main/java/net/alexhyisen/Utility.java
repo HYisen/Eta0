@@ -1,13 +1,14 @@
 package net.alexhyisen;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import net.alexhyisen.log.KafkaLog;
+import net.alexhyisen.log.LocalLog;
+import net.alexhyisen.log.Log;
+import net.alexhyisen.log.LogCls;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -20,7 +21,7 @@ import java.util.stream.IntStream;
  */
 public class Utility {
     private static Function<LogCls, Path> pathFinder = genCachedMapper(new EnumMap<>(LogCls.class),
-            v -> Paths.get(".", v.getFilename()));
+            v -> Paths.get(".", v.getPath()));
     private static Function<LogCls, ReentrantLock> lockFinder = genCachedMapper(new EnumMap<>(LogCls.class),
             v -> new ReentrantLock());
     private static Instant record = null;
@@ -42,7 +43,6 @@ public class Utility {
     //I just skipped it when looking for a solution at that time.
     //Under benchmark of 10M query of 20 random key, there is only <1% difference in average cost time.
     //I keep my redundant implement of the identical interface just in memory of the youth.
-    @SuppressWarnings("WeakerAccess")
     public static <K, V> Function<K, V> genCachedMapper(Map<K, V> inner, Function<K, V> mapper) {
         return new Function<>() {
             private ReentrantLock lock = new ReentrantLock();
@@ -77,33 +77,38 @@ public class Utility {
         log(LogCls.DEFAULT, msg);
     }
 
-    public static void log(LogCls cls, String msg) {
-        final var path = pathFinder.apply(cls);
-        final var lock = lockFinder.apply(cls);
-        final var message = String.format("[%s] %s %s\n", cls.getDesc(), LocalDateTime.now().toString(), msg);
-        System.out.print(message);
-        try {
-            lock.lock();
-            if (!Files.exists(path)) {
-                Files.createFile(path);
-            }
-            Files.write(
-                    path,
-                    message.getBytes(),
-                    StandardOpenOption.APPEND
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            lock.unlock();
+    private static Log log;
+
+    static {
+        var config = new Config();
+        config.load();
+        System.out.println(config.get("logClazz"));
+        System.out.println(config.get("kafkaBootstrapServers"));
+        if ("KafkaLog".equals(config.get("logClazz")) &&
+                config.get("kafkaBootstrapServers") != null) {
+            System.out.println("use KafkaLog");
+            log = KafkaLog.getInstance();
+        } else {
+            System.out.println("use LocalLog");
+            log = new LocalLog();
         }
+    }
+
+//      "logClazz":"KafkaLog",
+//  "kafkaBootstrapServers":"localhost:9092"
+
+    public static void shutdownGlobally() {
+        log.shutdownGlobally();
+    }
+
+    public static void log(LogCls cls, String msg) {
+        log.log(cls, msg);
     }
 
     public static IntStream revRange(int from, int to) {
         return IntStream.range(to, from).map(i -> from - 1 - (i - to));
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static void stamp(String msg) {
         if (record == null) {
             record = Instant.now();
@@ -111,34 +116,5 @@ public class Utility {
         long interval = Duration.between(record, Instant.now()).toMillis();
         record = Instant.now();
         System.out.printf("T+%4dms %s\n", interval, msg);
-    }
-
-    public enum LogCls {
-        DEFAULT("cout", "log"),
-        MAIL("mail"),
-        BOOK("book"),
-        SALE("sale"),
-        LOOP("loop"),
-        INFO("info");
-
-        private final String desc;
-        private final String filename;
-
-        LogCls(String desc, String filename) {
-            this.desc = desc;
-            this.filename = filename;
-        }
-
-        LogCls(String desc) {
-            this(desc, desc + "_log");
-        }
-
-        public String getDesc() {
-            return desc;
-        }
-
-        public String getFilename() {
-            return filename;
-        }
     }
 }

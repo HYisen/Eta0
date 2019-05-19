@@ -6,6 +6,7 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import net.alexhyisen.Utility;
+import net.alexhyisen.log.LogCls;
 
 /**
  * Created by Alex on 2017/5/28.
@@ -20,7 +21,7 @@ class CloseWebSocketFrameHandler extends SimpleChannelInboundHandler<CloseWebSoc
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CloseWebSocketFrame msg) {
-        Utility.log(Utility.LogCls.LOOP, "catch CloseFrame from Client " + ctx.channel());
+        Utility.log(LogCls.LOOP, "catch CloseFrame from Client " + ctx.channel());
         ctx.channel().writeAndFlush(new TextWebSocketFrame("Good Bye."));
         group.remove(ctx.channel());
         group.writeAndFlush(new TextWebSocketFrame("Client " + ctx.channel() + " quited."));

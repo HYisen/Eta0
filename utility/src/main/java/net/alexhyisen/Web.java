@@ -1,5 +1,7 @@
 package net.alexhyisen;
 
+import net.alexhyisen.log.LogCls;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -44,7 +46,7 @@ public class Web {
     public void load() throws IOException {
         var path = Paths.get(".", "www");
         if (!path.toFile().exists()) {
-            Utility.log(Utility.LogCls.LOOP, "create web dir at " + path.toAbsolutePath().toString());
+            Utility.log(LogCls.LOOP, "create web dir at " + path.toAbsolutePath().toString());
             Files.createDirectories(path);
         }
 
@@ -54,7 +56,7 @@ public class Web {
             load(files, "/");
         }
 
-        data.forEach((k, v) -> Utility.log(Utility.LogCls.LOOP, String.format(
+        data.forEach((k, v) -> Utility.log(LogCls.LOOP, String.format(
                 "load : %s -> %s", k, v.toPath().toAbsolutePath())));
     }
 
@@ -63,7 +65,7 @@ public class Web {
             try {
                 return new RandomAccessFile(v, "r");
             } catch (FileNotFoundException e) {
-                Utility.log(Utility.LogCls.LOOP, "failed to find " + v);
+                Utility.log(LogCls.LOOP, "failed to find " + v);
                 e.printStackTrace();
                 data.remove(name);
                 return null;

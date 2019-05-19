@@ -9,6 +9,7 @@ import io.netty.handler.stream.ChunkedNioFile;
 import net.alexhyisen.Utility;
 import net.alexhyisen.Web;
 import net.alexhyisen.eta.book.Book;
+import net.alexhyisen.log.LogCls;
 
 import java.io.RandomAccessFile;
 import java.util.List;
@@ -30,11 +31,11 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-        Utility.log(Utility.LogCls.LOOP, "get request to " + request.uri());
+        Utility.log(LogCls.LOOP, "get request to " + request.uri());
         String[] path = request.uri().split("/");
         if (mark.equalsIgnoreCase(request.uri())) {
             ctx.fireChannelRead(request.retain());
-            Utility.log(Utility.LogCls.LOOP, "pass to WebSocket");
+            Utility.log(LogCls.LOOP, "pass to WebSocket");
         } else if (request.method().equals(HttpMethod.GET) &&
                 path.length >= 2 && path[1].equals("db")) {
             //The traditional solution may be faster.
@@ -109,16 +110,16 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                     response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
                 }
                 ctx.write(response);
-                Utility.log(Utility.LogCls.LOOP, "write response header");
+                Utility.log(LogCls.LOOP, "write response header");
                 //a better cache strategy could be used there
                 if (ctx.pipeline().get(SslHandler.class) == null) {
                     ctx.write(new DefaultFileRegion(file.getChannel(), 0, file.length()));
-                    Utility.log(Utility.LogCls.LOOP, "write size = " + file.length());
+                    Utility.log(LogCls.LOOP, "write size = " + file.length());
                 } else {
                     ctx.write(new ChunkedNioFile((file.getChannel())));
                 }
                 ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-                Utility.log(Utility.LogCls.LOOP, "transmit finished");
+                Utility.log(LogCls.LOOP, "transmit finished");
                 if (!keepAlive) {
                     future.addListener(ChannelFutureListener.CLOSE);
                 }

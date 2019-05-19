@@ -11,6 +11,7 @@ import net.alexhyisen.eta.book.Book;
 import net.alexhyisen.eta.book.Chapter;
 import net.alexhyisen.eta.book.Source;
 import net.alexhyisen.eta.sale.Task;
+import net.alexhyisen.log.LogCls;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -50,10 +51,30 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
         this.shutdownHandler = shutdownHandler;
     }
 
+    private static void manageTaskArg(ChannelHandlerContext ctx, String arg, List<Task> jobs) {
+        String[] args;
+        args = arg.split("_");
+        Utility.log(LogCls.LOOP, "Start-Task expects 4 and get " + args.length);
+        if (args.length != 4) {
+            ctx.writeAndFlush(new TextWebSocketFrame(
+                    "hint: 'Start-Task Keywords_IntervalSecs_MinPrize_MaxPrize'"));
+        } else {
+            var task = new Task(args[0], Long.valueOf(args[2]), Long.valueOf(args[3]));
+            jobs.add(task);
+            Long intervalSecs = Long.valueOf(args[1]);
+            task.start(intervalSecs);
+            ctx.writeAndFlush(new TextWebSocketFrame(String.format(
+                    "started %4d | %s @ %d", jobs.size() - 1, task, intervalSecs)));
+            task.setArgument(arg);
+        }
+    }
+
+//    static final String TEXT_DELIMITER = "\n";
+
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
-            Utility.log(Utility.LogCls.LOOP, "HandshakeComplete");
+            Utility.log(LogCls.LOOP, "HandshakeComplete");
             ctx.pipeline().remove(HttpRequestHandler.class);
             ctx.channel().writeAndFlush(new TextWebSocketFrame("Welcome.\nThis is an ExpServer.\nHave a nice day!"));
             group.writeAndFlush(new TextWebSocketFrame("Client " + ctx.channel() + " joined."));
@@ -65,12 +86,10 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
         }
     }
 
-//    static final String TEXT_DELIMITER = "\n";
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) {
         String text = msg.text();
-        Utility.log(Utility.LogCls.LOOP, "read text " + text);
+        Utility.log(LogCls.LOOP, "read text " + text);
 
         int index = text.indexOf(' ');
         if (index != -1) {
@@ -155,7 +174,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                                 Files.lines(JOBS_SAVE_PATH).forEach(v -> manageTaskArg(ctx, v, jobs));
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                Utility.log(Utility.LogCls.SALE, "failed to resume tasks");
+                                Utility.log(LogCls.SALE, "failed to resume tasks");
                             }
                         }
                         ctx.writeAndFlush(new TextWebSocketFrame(Utility.genDesc(
@@ -177,18 +196,18 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                         web.load();
                     } catch (IOException e) {
                         e.printStackTrace();
-                        Utility.log(Utility.LogCls.LOOP, "failed to rescan");
+                        Utility.log(LogCls.LOOP, "failed to rescan");
                     }
                     ctx.writeAndFlush(new TextWebSocketFrame("complete"));
                     break;
                 case "balus":
                     final String info = "shutdown as " + ctx.channel() + " required.";
-                    Utility.log(Utility.LogCls.INFO, info);
+                    Utility.log(LogCls.INFO, info);
                     group.writeAndFlush(new TextWebSocketFrame(info));
 
                     jobs.forEach(Task::stop);
                     ctx.writeAndFlush(new TextWebSocketFrame("killed " + Utility.genDesc(jobs.size(), "task")));
-                    Utility.log(Utility.LogCls.SALE, "all the tasks stopped.");
+                    Utility.log(LogCls.SALE, "all the tasks stopped.");
 
                     final var lines = jobs
                             .stream()
@@ -203,7 +222,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                                 lines.size(), Utility.genDesc(jobs.size(), "task"))));
                     } catch (IOException e) {
                         e.printStackTrace();
-                        Utility.log(Utility.LogCls.SALE, "failed to save jobs.");
+                        Utility.log(LogCls.SALE, "failed to save jobs.");
                         ctx.writeAndFlush(new TextWebSocketFrame("failed to save jobs."));
                     }
 
@@ -213,7 +232,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    Utility.log(Utility.LogCls.BOOK, "retriever terminated.");
+                    Utility.log(LogCls.BOOK, "retriever terminated.");
 
                     try {
                         shutdownHandler.close();
@@ -223,24 +242,6 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                 default:
                     group.writeAndFlush(msg.retain());
             }
-        }
-    }
-
-    private static void manageTaskArg(ChannelHandlerContext ctx, String arg, List<Task> jobs) {
-        String[] args;
-        args = arg.split("_");
-        Utility.log(Utility.LogCls.LOOP, "Start-Task expects 4 and get " + args.length);
-        if (args.length != 4) {
-            ctx.writeAndFlush(new TextWebSocketFrame(
-                    "hint: 'Start-Task Keywords_IntervalSecs_MinPrize_MaxPrize'"));
-        } else {
-            var task = new Task(args[0], Long.valueOf(args[2]), Long.valueOf(args[3]));
-            jobs.add(task);
-            Long intervalSecs = Long.valueOf(args[1]);
-            task.start(intervalSecs);
-            ctx.writeAndFlush(new TextWebSocketFrame(String.format(
-                    "started %4d | %s @ %d", jobs.size() - 1, task, intervalSecs)));
-            task.setArgument(arg);
         }
     }
 }

@@ -10,6 +10,7 @@ import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import net.alexhyisen.Utility;
+import net.alexhyisen.log.LogCls;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
@@ -95,7 +96,7 @@ class NettyClient implements Client {
             }
         }//finish the last sending first if available.
 
-        Utility.log(Utility.LogCls.MAIL, "client: " + content);
+        Utility.log(LogCls.MAIL, "client: " + content);
         lastWrite = channel.writeAndFlush(content + "\r\n");
     }
 
@@ -103,7 +104,7 @@ class NettyClient implements Client {
     public String receive() throws IOException {
         try {
             String line = lines.take();
-            Utility.log(Utility.LogCls.MAIL, "server: " + line);
+            Utility.log(LogCls.MAIL, "server: " + line);
             return line;
         } catch (InterruptedException e) {
             throw new IOException(e);

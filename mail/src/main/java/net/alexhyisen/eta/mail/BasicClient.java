@@ -1,6 +1,7 @@
 package net.alexhyisen.eta.mail;
 
 import net.alexhyisen.Utility;
+import net.alexhyisen.log.LogCls;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,14 +37,14 @@ class BasicClient implements Client {
 
     @Override
     public void send(String content) {
-        Utility.log(Utility.LogCls.MAIL, "client: " + content);
+        Utility.log(LogCls.MAIL, "client: " + content);
         out.println(content);
     }
 
     @Override
     public String receive() throws IOException {
         String line = in.readLine();
-        Utility.log(Utility.LogCls.MAIL, "server: " + line);
+        Utility.log(LogCls.MAIL, "server: " + line);
         return line;
     }
 
