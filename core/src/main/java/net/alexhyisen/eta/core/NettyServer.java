@@ -12,11 +12,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.ImmediateEventExecutor;
-import net.alexhyisen.Signer;
+import net.alexhyisen.Config;
 import net.alexhyisen.Utility;
 import net.alexhyisen.Web;
 import net.alexhyisen.eta.book.Book;
@@ -26,10 +26,10 @@ import net.alexhyisen.log.LogCls;
 
 import javax.net.ssl.SSLException;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Paths;
-import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +46,8 @@ class NettyServer implements Closeable {
     private NettyServer self = this;
     private Web web;
 
+    private SslContext sslContext = null;//null for HTTPS disabled situation
+
     private void init() {
         Source source = new Source();
         source.load(Paths.get("sourceAll"));
@@ -59,6 +61,27 @@ class NettyServer implements Closeable {
         }
 //        data.forEach(Book::open);
 //        System.out.println("all books are opened.");
+
+        if ("true".equals(Config.getFromDefault("enableHttps"))) {
+            Utility.log(LogCls.LOOP, "Enable HTTPS");
+
+            File key = Paths.get(Config.getFromDefault("tlsKeyPath")).toFile();
+            File pem = Paths.get(Config.getFromDefault("tlsPemPath")).toFile();
+
+            try {
+                sslContext = SslContextBuilder.forServer(pem, key).build();
+            } catch (SSLException e) {
+                throw new RuntimeException(e);
+            }
+
+            //No provider succeeded to generate a self-signed certificate.
+//            try {
+//                SelfSignedCertificate ssc = new SelfSignedCertificate();
+//                sslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+//            } catch (CertificateException | SSLException e) {
+//                e.printStackTrace();
+//            }
+        }
     }
 
     ChannelFuture start(InetSocketAddress address) {
@@ -69,6 +92,9 @@ class NettyServer implements Closeable {
                 .childHandler(new ChannelInitializer<>() {
                     @Override
                     protected void initChannel(Channel channel) {
+                        if (sslContext != null) {
+                            channel.pipeline().addLast(sslContext.newHandler(channel.alloc()));
+                        }
                         channel.pipeline()
                                 .addLast(new HttpServerCodec())
                                 .addLast(new ChunkedWriteHandler())
@@ -93,21 +119,5 @@ class NettyServer implements Closeable {
         eventGroup.shutdownGracefully();
         Utility.log(LogCls.INFO, "final");
         Utility.shutdownGlobally();
-    }
-
-    @SuppressWarnings("unused")
-    private static void makeSecure(Channel channel) {
-        PrivateKey key;
-        try {
-            key = Signer.load(Paths.get("priKey"));
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            channel.pipeline().addFirst("ssl", new SslHandler(
-                    SslContextBuilder.forServer(key).build().newEngine(channel.alloc())));
-        } catch (SSLException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
