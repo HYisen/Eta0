@@ -21,6 +21,32 @@ public class Config {
     private final Path path;
     private Map<String, String> data = new LinkedHashMap<>();
 
+    private static Config singleton = null;
+
+    /**
+     * Don't expose it outside unless the multi-thread write issue is solved.
+     * Use it carefully.
+     * @return an instance of the default Config which is not thread safe
+     */
+    private static Config getInstance() {
+        if (singleton == null) {
+            //My first time to use synchronized() in real project.
+            //Whoever care the implementation of a one-run method? (spin lock, heavy lock, AQS, native code)
+            synchronized (Config.class) {
+                if (singleton == null) {
+                    singleton = new Config();
+                    singleton.load();
+                }
+            }
+        }
+        return singleton;
+    }
+
+    public static String getFromDefault(String key) {
+        //don't use singleton instead than getter for consistence
+        return getInstance().get(key);
+    }
+
     public Config() {
         this.path = Paths.get(".", "config");
     }
@@ -38,6 +64,7 @@ public class Config {
         return data.get(key);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public String put(String key, String value) {
         return data.put(key, value);
     }
