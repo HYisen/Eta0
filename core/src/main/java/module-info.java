@@ -6,7 +6,7 @@ module core {
 
     requires gson;
     requires java.sql;//for gson
-    requires netty.all;
+    requires io.netty.all;
 
     exports net.alexhyisen.eta.core;
 }

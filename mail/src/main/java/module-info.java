@@ -3,7 +3,7 @@ module mail {
     requires book;
 
     requires jsr305;
-    requires netty.all;
+    requires io.netty.all;
 
     exports net.alexhyisen.eta.mail;
 }
