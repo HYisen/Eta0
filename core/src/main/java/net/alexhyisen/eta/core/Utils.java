@@ -25,4 +25,8 @@ class Utils {
             future.addListener(ChannelFutureListener.CLOSE);
         }
     }
+
+    static void respondJson(ChannelHandlerContext ctx, FullHttpRequest request, byte[] payload) {
+        respond(ctx, request, "application/json; charset=UTF-8", payload);
+    }
 }

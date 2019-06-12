@@ -99,6 +99,7 @@ class NettyServer implements Closeable {
                                 .addLast(new HttpServerCodec())
                                 .addLast(new ChunkedWriteHandler())
                                 .addLast(new HttpObjectAggregator(65536))
+                                .addLast(new RestfulRequestHandler("api"))
                                 .addLast(new HttpRequestHandler("/ws", data, web))
                                 .addLast("ws", new WebSocketServerProtocolHandler("/ws"))
                                 .addLast(new TextWebSocketFrameHandler(data, jobs, web, channelGroup, self));
