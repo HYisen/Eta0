@@ -16,7 +16,10 @@ import java.util.List;
 
 /**
  * Created by Alex on 2017/5/28.
- * offer a HTML debug client that can be used in a browser.
+ * handle some http request,
+ * skip requests to WebSocket path,
+ * offer static resources,
+ * provide similar protocol in http.
  */
 class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final String mark;
