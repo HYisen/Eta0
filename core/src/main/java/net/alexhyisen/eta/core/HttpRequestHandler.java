@@ -1,7 +1,5 @@
 package net.alexhyisen.eta.core;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
@@ -71,27 +69,14 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                     throw new RuntimeException("Failed to match RESTful HTTP request");
             }
 
-            ByteBuf content = Unpooled.wrappedBuffer(envelope.toJson().getBytes());
-
-            FullHttpResponse response = new DefaultFullHttpResponse(
-                    request.protocolVersion(), HttpResponseStatus.OK, content);
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=UTF-8");
-            boolean keepAlive = HttpUtil.isKeepAlive(request);
-            if (keepAlive) {
-                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
-                response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-            }
-            ctx.write(response);
-            ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-            if (!keepAlive) {
-                future.addListener(ChannelFutureListener.CLOSE);
-            }
+            Utils.respond(ctx, request, "application/json; charset=UTF-8", envelope.toJson().getBytes());
         } else {
             //manage HTTP1.1 100 Continue situation
             if (HttpUtil.is100ContinueExpected(request)) {
                 ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
             }
 
+            //likely I should integrate the following procedure to Util::respond.
             var data = web.get(request.uri());
             if (data.isPresent()) {
                 RandomAccessFile file = data.get();
