@@ -44,6 +44,12 @@
             <artifactId>slf4j-nop</artifactId>
             <version>1.7.26</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.12</version>
+        </dependency>
 
     </dependencies>
 
