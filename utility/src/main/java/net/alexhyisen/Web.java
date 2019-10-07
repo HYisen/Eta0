@@ -56,6 +56,11 @@ public class Web {
             load(files, "/");
         }
 
+        if (data.containsKey("/index")) {
+            Utility.log(LogCls.LOOP, "map /index to /");
+            data.put("/", data.get("/index"));
+        }
+
         data.forEach((k, v) -> Utility.log(LogCls.LOOP, String.format(
                 "load : %s -> %s", k, v.toPath().toAbsolutePath())));
     }
