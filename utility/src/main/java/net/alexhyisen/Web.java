@@ -29,8 +29,8 @@ public class Web {
             if (file.isDirectory()) {
                 File[] children = file.listFiles();
                 if (children != null) {
-                    prefix += file.getName() + "/";
-                    load(children, prefix);
+                    String nextPrefix = prefix + file.getName() + "/";
+                    load(children, nextPrefix);
                 }
             } else if (file.isFile()) {
                 String name = file.getName();
