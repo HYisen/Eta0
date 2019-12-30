@@ -120,7 +120,8 @@ public class Utility {
 
     public static String extractName(Path path) {
         String filename = path.getFileName().toString();
-        return filename.substring(0, filename.lastIndexOf('.'));
+        int endIndex = filename.lastIndexOf('.');
+        return endIndex == -1 ? filename : filename.substring(0, endIndex);
     }
 
     public static Path changeExtName(Path path, String targetExtName) {
