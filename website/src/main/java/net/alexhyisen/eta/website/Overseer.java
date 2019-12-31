@@ -6,7 +6,6 @@ import net.alexhyisen.log.LogCls;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,9 +14,9 @@ import java.util.Set;
 public class Overseer {
     private final Path path;
 
-    public Overseer(Path path) {
+    public Overseer(Path path) throws IOException {
         if (!path.toFile().isDirectory()) {
-            throw new InvalidParameterException("expect path " + path.toAbsolutePath() + " to be a directory");
+            throw new IOException("expect path " + path.toAbsolutePath() + " to be a directory");
         }
         this.path = path;
     }
