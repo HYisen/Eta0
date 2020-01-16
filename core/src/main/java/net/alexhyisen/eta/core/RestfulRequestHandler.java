@@ -4,11 +4,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
+import net.alexhyisen.Keeper;
 import net.alexhyisen.Utility;
 import net.alexhyisen.log.LogCls;
 
 public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final String prefix;
+
+    private static Keeper keeper = new Keeper();
 
     RestfulRequestHandler(String prefix) {
         this.prefix = prefix;
@@ -28,5 +31,6 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
             String infoMsg = "{\"desc\":\"info message\"}";
             Utils.respondJson(ctx, request, infoMsg.getBytes());
         }
+
     }
 }

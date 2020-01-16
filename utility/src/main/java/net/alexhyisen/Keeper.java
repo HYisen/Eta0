@@ -7,9 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -20,6 +20,43 @@ public class Keeper {
     static final Path DB_PATH_SWP = Path.of(".", "shadow.swp");
 
     private static Map<String, String> db;//username->salted hashed password
+
+    private static ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+    private static Set<String> memory = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static Random rand = new Random();
+
+    private static char genRandomChar() {
+        int code = rand.nextInt(62);
+        if (code < 10) {
+            return (char)('0' + code);
+        } else if (code < 36) {
+            return (char) ('a' + code - 10);
+        } else {
+            return (char) ('a' + code - 36);
+        }
+    }
+
+    private static String genRandomString() {
+        var sb = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            sb.append(genRandomChar());
+        }
+        return sb.toString();
+    }
+
+    public boolean isAuthorized(String token) {
+        return memory.contains(token);
+    }
+
+    public String register() {
+        String token = genRandomString();
+        while (memory.contains(token)) {
+            token = genRandomString();
+        }
+        String finalToken = token;
+        ses.schedule(() -> memory.remove(finalToken), 3600, TimeUnit.SECONDS);
+        return token;
+    }
 
     public boolean isAuthorized(String username, String password) {
         String encrypted = db.get(username);
