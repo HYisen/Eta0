@@ -11,6 +11,7 @@ import net.alexhyisen.eta.book.Book;
 import net.alexhyisen.eta.book.Chapter;
 import net.alexhyisen.eta.book.Source;
 import net.alexhyisen.eta.sale.Task;
+import net.alexhyisen.eta.website.Overseer;
 import net.alexhyisen.log.LogCls;
 
 import java.io.Closeable;
@@ -35,6 +36,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
     private List<Book> data;
     private List<Task> jobs;
     private Web web;
+    private Overseer overseer;
     private final ChannelGroup group;
     private final Closeable shutdownHandler;
     //a singleton retriever ExecutorService used to do the disk IO jobs.
@@ -43,10 +45,11 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
     private static Path JOBS_SAVE_PATH = Path.of(".", "jobs");
 
 
-    TextWebSocketFrameHandler(List<Book> data, List<Task> jobs, Web web, ChannelGroup group, Closeable shutdownHandler) {
+    public TextWebSocketFrameHandler(List<Book> data, List<Task> jobs, Web web, Overseer overseer, ChannelGroup group, Closeable shutdownHandler) {
         this.data = data;
         this.jobs = jobs;
         this.web = web;
+        this.overseer = overseer;
         this.group = group;
         this.shutdownHandler = shutdownHandler;
     }
@@ -59,9 +62,9 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
             ctx.writeAndFlush(new TextWebSocketFrame(
                     "hint: 'Start-Task Keywords_IntervalSecs_MinPrize_MaxPrize'"));
         } else {
-            var task = new Task(args[0], Long.valueOf(args[2]), Long.valueOf(args[3]));
+            var task = new Task(args[0], Long.parseLong(args[2]), Long.parseLong(args[3]));
             jobs.add(task);
-            Long intervalSecs = Long.valueOf(args[1]);
+            long intervalSecs = Long.parseLong(args[1]);
             task.start(intervalSecs);
             ctx.writeAndFlush(new TextWebSocketFrame(String.format(
                     "started %4d | %s @ %d", jobs.size() - 1, task, intervalSecs)));
@@ -101,11 +104,11 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     //ctx.writeAndFlush(new TextWebSocketFrame("accept request to " + arg));
                     args = arg.split("\\.");
                     retriever.submit(() -> {
-                        Book book = data.get(Integer.valueOf(args[0]));
+                        Book book = data.get(Integer.parseInt(args[0]));
                         if (!book.isOpened()) {
                             book.open();
                         }
-                        Chapter chapter = book.getChapters().get(Integer.valueOf(args[1]));
+                        Chapter chapter = book.getChapters().get(Integer.parseInt(args[1]));
                         ctx.writeAndFlush(new TextWebSocketFrame(new Envelope(chapter).toJson()));
                     });
                     break;
@@ -113,7 +116,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     if (".".equals(arg)) {
                         ctx.writeAndFlush(new TextWebSocketFrame(new Envelope(data).toJson()));
                     } else {
-                        Book book = data.get(Integer.valueOf(arg));
+                        Book book = data.get(Integer.parseInt(arg));
                         ctx.writeAndFlush(new TextWebSocketFrame(new Envelope(book).toJson()));
                     }
                     break;
@@ -126,7 +129,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                         ctx.writeAndFlush(new TextWebSocketFrame("Refreshing of " + data.size() + " completed"));
                         Utility.log("all data refreshed ");
                     } else {
-                        Book book = data.get(Integer.valueOf(arg));
+                        Book book = data.get(Integer.parseInt(arg));
                         book.open();
                         ctx.writeAndFlush(new TextWebSocketFrame("Refreshing of " + book.getName() + " completed"));
                         Utility.log("book " + book.getName() + " refreshed ");
@@ -142,7 +145,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                         this.jobs.forEach(Task::stop);
                     } else {
                         try {
-                            int id = Integer.valueOf(arg);
+                            int id = Integer.parseInt(arg);
                             this.jobs.get(id).stop();
                             this.jobs.remove(id);
                         } catch (NumberFormatException e) {
@@ -192,6 +195,12 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     ctx.writeAndFlush(new TextWebSocketFrame("reloaded"));
                     break;
                 case "rescan":
+                    try {
+                        overseer.maintain();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Utility.log(LogCls.LOOP, "failed to maintain");
+                    }
                     try {
                         web.load();
                     } catch (IOException e) {

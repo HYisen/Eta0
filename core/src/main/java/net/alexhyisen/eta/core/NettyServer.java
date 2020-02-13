@@ -22,6 +22,7 @@ import net.alexhyisen.Web;
 import net.alexhyisen.eta.book.Book;
 import net.alexhyisen.eta.book.Source;
 import net.alexhyisen.eta.sale.Task;
+import net.alexhyisen.eta.website.Overseer;
 import net.alexhyisen.log.LogCls;
 
 import javax.net.ssl.SSLException;
@@ -29,6 +30,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +48,7 @@ class NettyServer implements Closeable {
     private List<Task> jobs = new ArrayList<>();
     private NettyServer self = this;
     private Web web;
+    private Overseer overseer;
 
     private SslContext sslContext = null;//null for HTTPS disabled situation
 
@@ -59,6 +63,17 @@ class NettyServer implements Closeable {
             Utility.log(LogCls.LOOP, "failed to load web resources");
             e.printStackTrace();
         }
+        try {
+            var path = Path.of(".", "www", "site");
+            if (!Files.exists(path)) {
+                Files.createDirectory(path);
+            }
+            overseer = new Overseer(path);
+        } catch (IOException e) {
+            Utility.log(LogCls.LOOP, "failed to init overseer");
+            e.printStackTrace();
+        }
+
 //        data.forEach(Book::open);
 //        System.out.println("all books are opened.");
 
@@ -101,7 +116,7 @@ class NettyServer implements Closeable {
                                 .addLast(new HttpObjectAggregator(65536))
                                 .addLast(new HttpRequestHandler("/ws", data, web))
                                 .addLast("ws", new WebSocketServerProtocolHandler("/ws"))
-                                .addLast(new TextWebSocketFrameHandler(data, jobs, web, channelGroup, self));
+                                .addLast(new TextWebSocketFrameHandler(data, jobs, web, overseer, channelGroup, self));
                     }
                 });
         return bootstrap.bind(address);
