@@ -1,7 +1,9 @@
-import React, {useReducer, useState} from "react";
+import React, {useEffect, useReducer, useState} from "react";
 import {Button, TextField} from "@material-ui/core";
 import LoopIcon from '@material-ui/icons/Loop';
 import ItemView, {Item, MessageType} from "./components/ItemView";
+import {Service} from "./Service";
+import {unstable_batchedUpdates} from "react-dom";
 
 
 function Main() {
@@ -13,10 +15,27 @@ function Main() {
 
     const [items, addItem] = useReducer((state: Item[], action: Item) => state.concat(action), []);
 
-
     function addMessage(cls: MessageType, msg: string): void {
         addItem({id: items.length, type: cls, message: msg, timestamp: Date.now()});
     }
+
+    useEffect(() => {
+        service.addEventListener('message', updateMessageAction);
+        return () => {
+            service.removeEventListener('message', updateMessageAction);
+        };
+    });
+
+    const updateMessageAction = (event: MessageEvent) => {
+        // addMessage(MessageType.Server, event.data.toString());
+        addItem({id: items.length, type: MessageType.Server, message: event.data.toString(), timestamp: Date.now()});
+    };
+
+    const showErrorAction = (ev: Event) => {
+        addMessage(MessageType.Info, `error = ${ev}`);
+    };
+
+    const service = Service.Instance;
 
     return (
         <div>
@@ -40,21 +59,29 @@ function Main() {
 
                 if (!linked) {
                     setLinking(true);
-                    setTimeout(() => {
-                        setLinked(true);
-                        setLinking(false);
-                    }, 1000);
+
+                    service.link(host, port, true);
+                    service.addEventListener('error', showErrorAction);
+                    service.addEventListener('open', () => {
+                        unstable_batchedUpdates(() => {
+                            // Hope it would be automatically in future.
+                            setLinked(true);
+                            setLinking(false);
+                        });
+                    }, true);
                 } else {
                     setLinking(true);
-                    setTimeout(() => {
-                        setLinked(false);
-                        setLinking(false);
-                    }, 1000);
+                    service.addEventListener('close', () => {
+                        unstable_batchedUpdates(() => {
+                            setLinked(false);
+                            setLinking(false);
+                        });
+                    }, true);
                 }
             }}
                     variant="contained"
-                    color={linked ? "secondary" : "primary"}
-            >{linking ? <LoopIcon/> : linked ? "OFF" : "ON"}</Button>
+                    color={linked ? "primary" : "secondary"}
+            >{linking ? <LoopIcon/> : linked ? "ON" : "OFF"}</Button>
             <TextField
                 id="message"
                 label="message"
@@ -63,8 +90,8 @@ function Main() {
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => setMessage(event.target.value)}
             />
             <Button onClick={() => {
-                window.console.log(`send ${message}`);
-                addMessage(MessageType.Info, message);
+                addMessage(MessageType.Client, message);
+                service.send(message);
                 setMessage("");
             }}
                     variant="contained"
