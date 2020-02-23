@@ -20,19 +20,21 @@ function Main() {
     }
 
     useEffect(() => {
-        service.addEventListener('message', updateMessageAction);
+        service.addEventListener('message', onMessageAction);
+        service.addEventListener('error', onErrorAction);
         return () => {
-            service.removeEventListener('message', updateMessageAction);
+            service.removeEventListener('message', onMessageAction);
+            service.removeEventListener('error', onErrorAction);
         };
     });
 
-    const updateMessageAction = (event: MessageEvent) => {
+    const onMessageAction = (event: MessageEvent) => {
         // addMessage(MessageType.Server, event.data.toString());
         addItem({id: items.length, type: MessageType.Server, message: event.data.toString(), timestamp: Date.now()});
     };
 
-    const showErrorAction = (ev: Event) => {
-        addMessage(MessageType.Info, `error = ${ev}`);
+    const onErrorAction = (event: Event) => {
+        addMessage(MessageType.Info, `error = ${event}`);
     };
 
     const service = Service.Instance;
@@ -61,7 +63,6 @@ function Main() {
                     setLinking(true);
 
                     service.link(host, port, true);
-                    service.addEventListener('error', showErrorAction);
                     service.addEventListener('open', () => {
                         unstable_batchedUpdates(() => {
                             // Hope it would be automatically in future.
