@@ -84,6 +84,7 @@ function Main() {
                     color={linked ? "primary" : "secondary"}
             >{linking ? <LoopIcon/> : linked ? "ON" : "OFF"}</Button>
             <TextField
+                autoComplete="off"
                 id="message"
                 label="message"
                 value={message}
