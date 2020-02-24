@@ -54,7 +54,7 @@ function ItemView(props: { data: Item[] }) {
             direction="column"
             justify="flex-start"
             alignItems="stretch"
-            spacing={8}
+            spacing={1}
         >
             {props.data.map(one =>
                 <Grid item key={one.id}>
