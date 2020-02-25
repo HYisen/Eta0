@@ -115,14 +115,15 @@ function Main() {
                                                     setLinking(false);
                                                 });
                                             }, true);
-                                        } else {
-                                            setLinking(true);
                                             service.addEventListener('close', () => {
                                                 unstable_batchedUpdates(() => {
                                                     setLinked(false);
                                                     setLinking(false);
                                                 });
                                             }, true);
+                                        } else {
+                                            setLinking(true);
+                                            service.close();
                                         }
                                     }}
                                     variant="contained"
