@@ -8,7 +8,7 @@ import {makeStyles} from "@material-ui/core/styles";
 import {genTabProps, TabClazz, TabPanel} from "./components/TabPanel";
 import SwipeableViews from 'react-swipeable-views';
 import {HttpMessenger} from "./nexus";
-import ReaderTab, {Book} from "./components/ReaderTab";
+import ReaderTab, {Book, Stage} from "./components/ReaderTab";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -17,8 +17,8 @@ const useStyles = makeStyles((theme: Theme) =>
             marginTop: 10,
         },
         root: {
-            padding: theme.spacing(0)
-        }
+            padding: theme.spacing(0),
+        },
     })
 );
 
@@ -36,8 +36,20 @@ function Main() {
 
     const [value, setValue] = React.useState(TabClazz.Reader);
 
+    const [stage, setStage] = useState(Stage.Shelf);
+    const [bookId, setBookId] = useState(-1);
+    const [chapterId, setChapterId] = useState(-1);
+
     const messenger = useMemo(() => new HttpMessenger(`http://${host}:${port}`), [host, port]);
     const data: MutableRefObject<Book[] | null> = useRef(null);
+
+    const update = (stage: Stage, bookId: number, chapterId: number) => {
+        unstable_batchedUpdates(() => {
+            setStage(stage);
+            setBookId(bookId);
+            setChapterId(chapterId);
+        });
+    };
 
     function addMessage(cls: MessageType, msg: string): void {
         addItem({id: items.length, type: cls, message: msg, timestamp: Date.now()});
@@ -164,7 +176,8 @@ function Main() {
                     </Grid>
                 </TabPanel>
                 <TabPanel value={value} index={TabClazz.Reader} dir={theme.direction}>
-                    <ReaderTab messenger={messenger} data={data}/>
+                    <ReaderTab messenger={messenger} data={data}
+                               stage={stage} bookId={bookId} chapterId={chapterId} update={update}/>
                 </TabPanel>
             </SwipeableViews>
         </div>

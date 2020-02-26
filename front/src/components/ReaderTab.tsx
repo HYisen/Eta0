@@ -3,8 +3,7 @@ import {Messenger} from "../nexus";
 import {Card, CardActionArea, CardContent, Grid} from "@material-ui/core";
 import {unstable_batchedUpdates} from "react-dom";
 
-
-enum Stage {
+export enum Stage {
     Shelf,
     Book,
     Chapter
@@ -23,13 +22,14 @@ interface Chapter {
 export interface ReaderTabProps {
     messenger: Messenger;
     data: MutableRefObject<Book[] | null>;
+    stage: Stage;
+    bookId: number;
+    chapterId: number;
+    update: (stage: Stage, bookId: number, chapterId: number) => void;
 }
 
-export default function ReaderTab({messenger, data}: ReaderTabProps) {
+export default function ReaderTab({messenger, data, stage, bookId, chapterId, update}: ReaderTabProps) {
     const [loadingMessage, setLoadingMessage] = useState('');
-    const [stage, setStage] = useState(Stage.Shelf);
-    const [bookId, setBookId] = useState(-1);
-    const [chapterId, setChapterId] = useState(-1);
 
     window.console.log("render REad");
 
@@ -55,10 +55,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                             <CardActionArea onClick={
                                 () => {
                                     console.log(`click ${id}`);
-                                    unstable_batchedUpdates(() => {
-                                        setBookId(id);
-                                        setStage(Stage.Book);
-                                    })
+                                    update(Stage.Book, id, chapterId);
                                 }
                             }>
                                 <CardContent style={{textAlign: "center"}}>
@@ -84,7 +81,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                 cards.push(
                     <Grid item key={++cnt}>
                         <Card>
-                            <CardActionArea onClick={() => setStage(Stage.Shelf)}>
+                            <CardActionArea onClick={() => update(Stage.Shelf, bookId, chapterId)}>
                                 <CardContent style={{textAlign: "center"}}>
                                     {`Back to Shelf`}
                                 </CardContent>
@@ -97,10 +94,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                             <CardActionArea onClick={
                                 () => {
                                     console.log(`click ${id}`);
-                                    unstable_batchedUpdates(() => {
-                                        setChapterId(id);
-                                        setStage(Stage.Chapter);
-                                    })
+                                    update(Stage.Chapter, bookId, id);
                                 }
                             }>
                                 <CardContent style={{textAlign: "center"}}>
@@ -129,7 +123,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                 cards.push(
                     <Grid item key={++cnt}>
                         <Card>
-                            <CardActionArea onClick={() => setStage(Stage.Book)}>
+                            <CardActionArea onClick={() => update(Stage.Book, bookId, chapterId)}>
                                 <CardContent style={{textAlign: "center"}}>
                                     {`《${book.name}》 ${chapter.title}`}
                                 </CardContent>
@@ -151,7 +145,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                     cards.push(
                         <Grid item key={++cnt}>
                             <Card>
-                                <CardActionArea onClick={() => setChapterId(chapterId + 1)}>
+                                <CardActionArea onClick={() => update(stage, bookId, chapterId + 1)}>
                                     <CardContent style={{textAlign: "center"}}>
                                         {`NEXT`}
                                     </CardContent>
