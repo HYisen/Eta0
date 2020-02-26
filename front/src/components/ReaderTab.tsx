@@ -37,7 +37,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
         return <p>{loadingMessage}</p>;
     }
 
-    let cards;
+    let cards: JSX.Element[] = [];
     let cnt: number = 0;
     switch (stage) {
         case Stage.Shelf:
@@ -49,7 +49,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                 });
             } else {
                 let current: Book[] = data.current;
-                cards = current.map((book, id) => {
+                cards.push(...current.map((book, id) => {
                     return <Grid item key={++cnt}>
                         <Card>
                             <CardActionArea onClick={
@@ -67,7 +67,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                             </CardActionArea>
                         </Card>
                     </Grid>
-                });
+                }));
             }
             break;
         case Stage.Book:
@@ -81,7 +81,23 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                     setLoadingMessage('');
                 });
             } else {
-                cards = book.chapters.map((chapter, id) => {
+                cards.push(
+                    <Grid item key={++cnt}>
+                        <Card>
+                            <CardActionArea onClick={
+                                () => {
+                                    unstable_batchedUpdates(() => {
+                                        setStage(Stage.Shelf);
+                                    })
+                                }
+                            }>
+                                <CardContent style={{textAlign: "center"}}>
+                                    {`Back to Shelf`}
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Grid>);
+                cards.push(...book.chapters.map((chapter, id) => {
                     return <Grid item key={++cnt}>
                         <Card>
                             <CardActionArea onClick={
@@ -99,7 +115,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                             </CardActionArea>
                         </Card>
                     </Grid>
-                })
+                }));
             }
             break;
         case Stage.Chapter:
@@ -114,15 +130,34 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                     })
                 });
             } else {
-                cards = [<Grid item key={++cnt}>
-                    <Card>
-                        <CardContent style={{textIndent: "2em"}}>
-                            {chapter.content?.map(line => {
-                                return <p key={++cnt}>{line}</p>;
-                            })}
-                        </CardContent>
-                    </Card>
-                </Grid>];
+                // @ts-ignore
+                const bookName = data.current[bookId].name;
+                cards.push(
+                    <Grid item key={++cnt}>
+                        <Card>
+                            <CardActionArea onClick={
+                                () => {
+                                    unstable_batchedUpdates(() => {
+                                        setStage(Stage.Book);
+                                    })
+                                }
+                            }>
+                                <CardContent style={{textAlign: "center"}}>
+                                    {`Back to Book《${bookName}》`}
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Grid>);
+                cards.push(
+                    <Grid item key={++cnt}>
+                        <Card>
+                            <CardContent style={{textIndent: "2em"}}>
+                                {chapter.content?.map(line => {
+                                    return <p key={++cnt}>{line}</p>;
+                                })}
+                            </CardContent>
+                        </Card>
+                    </Grid>);
             }
             break;
         default:
