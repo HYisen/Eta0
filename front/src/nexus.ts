@@ -4,7 +4,7 @@ import {Service} from "./Service";
 export interface Messenger {
     getShelf: () => Promise<string[]>
     getBook: (bookId: number) => Promise<string[]>
-    getChapter: (bookId: number, chapterId: number) => Promise<string>
+    getChapter: (bookId: number, chapterId: number) => Promise<string[]>
 }
 
 interface Envelop {
@@ -30,10 +30,6 @@ const ajax = async (method: string, payloadNullable: any | null, url: string) =>
     return response.json();
 };
 
-const joinChapter = (content: string[]) => {
-    return content.join('\n');
-};
-
 export class HttpMessenger implements Messenger {
     private readonly addr: string;
 
@@ -50,7 +46,7 @@ export class HttpMessenger implements Messenger {
         return this.get(`${bookId}`);
     };
     getChapter = async (bookId: number, chapterId: number) => {
-        return joinChapter(await this.get(`${bookId}/${chapterId}`));
+        return this.get(`${bookId}/${chapterId}`);
     };
     getShelf = async () => {
         return this.get(``);
@@ -83,7 +79,7 @@ export class WebSocketMessenger implements Messenger {
         return this.access(`ls ${bookId}`);
     };
     getChapter = async (bookId: number, chapterId: number) => {
-        return joinChapter(await this.access(`get ${bookId}.${chapterId}`));
+        return this.access(`get ${bookId}.${chapterId}`);
     };
     getShelf = async () => {
         return this.access(`ls .`);

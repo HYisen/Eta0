@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer, useState} from "react";
+import React, {MutableRefObject, useEffect, useMemo, useReducer, useRef, useState} from "react";
 import {AppBar, Button, createStyles, Grid, Tab, Tabs, TextField, Theme, useTheme} from "@material-ui/core";
 import LoopIcon from '@material-ui/icons/Loop';
 import ItemView, {Item, MessageType} from "./components/ItemView";
@@ -7,6 +7,8 @@ import {unstable_batchedUpdates} from "react-dom";
 import {makeStyles} from "@material-ui/core/styles";
 import {genTabProps, TabClazz, TabPanel} from "./components/TabPanel";
 import SwipeableViews from 'react-swipeable-views';
+import {HttpMessenger} from "./nexus";
+import ReaderTab, {Book} from "./components/ReaderTab";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -24,15 +26,18 @@ function Main() {
     const classes = useStyles({});
     const theme = useTheme();
 
-    const [host, setHost] = useState("hyisen.net");
-    const [port, setPort] = useState(443);
+    const [host, setHost] = useState("localhost");
+    const [port, setPort] = useState(8964);
     const [linked, setLinked] = useState(false);
     const [linking, setLinking] = useState(false);
     const [message, setMessage] = useState("");
 
     const [items, addItem] = useReducer((state: Item[], action: Item) => state.concat(action), []);
 
-    const [value, setValue] = React.useState(TabClazz.Config);
+    const [value, setValue] = React.useState(TabClazz.Reader);
+
+    const messenger = useMemo(() => new HttpMessenger(`http://${host}:${port}`), [host, port]);
+    const data: MutableRefObject<Book[] | null> = useRef(null);
 
     function addMessage(cls: MessageType, msg: string): void {
         addItem({id: items.length, type: cls, message: msg, timestamp: Date.now()});
@@ -159,10 +164,9 @@ function Main() {
                     </Grid>
                 </TabPanel>
                 <TabPanel value={value} index={TabClazz.Reader} dir={theme.direction}>
-                    Item Two
+                    <ReaderTab messenger={messenger} data={data}/>
                 </TabPanel>
             </SwipeableViews>
-
         </div>
     );
 }
