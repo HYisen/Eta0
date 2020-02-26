@@ -84,13 +84,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                 cards.push(
                     <Grid item key={++cnt}>
                         <Card>
-                            <CardActionArea onClick={
-                                () => {
-                                    unstable_batchedUpdates(() => {
-                                        setStage(Stage.Shelf);
-                                    })
-                                }
-                            }>
+                            <CardActionArea onClick={() => setStage(Stage.Shelf)}>
                                 <CardContent style={{textAlign: "center"}}>
                                     {`Back to Shelf`}
                                 </CardContent>
@@ -131,19 +125,13 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                 });
             } else {
                 // @ts-ignore
-                const bookName = data.current[bookId].name;
+                const book: Book = data.current[bookId];
                 cards.push(
                     <Grid item key={++cnt}>
                         <Card>
-                            <CardActionArea onClick={
-                                () => {
-                                    unstable_batchedUpdates(() => {
-                                        setStage(Stage.Book);
-                                    })
-                                }
-                            }>
+                            <CardActionArea onClick={() => setStage(Stage.Book)}>
                                 <CardContent style={{textAlign: "center"}}>
-                                    {`《${bookName}》 ${chapter.title}`}
+                                    {`《${book.name}》 ${chapter.title}`}
                                 </CardContent>
                             </CardActionArea>
                         </Card>
@@ -158,6 +146,19 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                             </CardContent>
                         </Card>
                     </Grid>);
+                // @ts-ignore
+                if (book.chapters.length > chapterId + 1) {
+                    cards.push(
+                        <Grid item key={++cnt}>
+                            <Card>
+                                <CardActionArea onClick={() => setChapterId(chapterId + 1)}>
+                                    <CardContent style={{textAlign: "center"}}>
+                                        {`NEXT`}
+                                    </CardContent>
+                                </CardActionArea>
+                            </Card>
+                        </Grid>);
+                }
             }
             break;
         default:
