@@ -13,6 +13,7 @@ const useStyles = makeStyles((theme: Theme) =>
             bottom: 'auto',
             left: 'auto',
             position: 'fixed',
+            zIndex: 65535,
         }
     })
 );
