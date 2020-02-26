@@ -10,6 +10,7 @@ import SwipeableViews from 'react-swipeable-views';
 import {HttpMessenger} from "./nexus";
 import ReaderTab, {Book, Stage} from "./components/ReaderTab";
 import ControlFab from "./components/ControlFab";
+import Memory from "./Memory";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -44,12 +45,20 @@ function Main() {
     const messenger = useMemo(() => new HttpMessenger(`http://${host}:${port}`), [host, port]);
     const data: MutableRefObject<Book[] | null> = useRef(null);
 
-    const update = (stage: Stage, bookId: number, chapterId: number) => {
+    const memory: Memory = Memory.Instance;
+
+    const update = (neoStage: Stage, neoBookId: number, neoChapterId: number) => {
         unstable_batchedUpdates(() => {
-            setStage(stage);
-            setBookId(bookId);
-            setChapterId(chapterId);
+            setStage(neoStage);
+            setBookId(neoBookId);
+            setChapterId(neoChapterId);
         });
+        if (neoBookId === bookId && neoChapterId !== chapterId) {
+            // @ts-ignore
+            memory.lastBookName = data.current[bookId].name;
+            memory.lastChapterId[memory.lastBookName] = neoChapterId;
+            memory.save();
+        }
     };
 
     const link = () => {
@@ -67,6 +76,10 @@ function Main() {
                     setLinked(true);
                     setLinking(false);
                 });
+
+                memory.host = host;
+                memory.port = port;
+                memory.save();
             }, true);
             service.addEventListener('close', () => {
                 unstable_batchedUpdates(() => {

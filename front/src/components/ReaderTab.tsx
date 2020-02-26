@@ -2,6 +2,7 @@ import React, {MutableRefObject, useState} from "react";
 import {Messenger} from "../nexus";
 import {Card, CardActionArea, CardContent, Grid} from "@material-ui/core";
 import {unstable_batchedUpdates} from "react-dom";
+import Memory from "../Memory";
 
 export enum Stage {
     Shelf,
@@ -31,7 +32,9 @@ export interface ReaderTabProps {
 export default function ReaderTab({messenger, data, stage, bookId, chapterId, update}: ReaderTabProps) {
     const [loadingMessage, setLoadingMessage] = useState('');
 
-    window.console.log("render REad");
+    const memory = Memory.Instance;
+
+    window.console.log("render reader");
 
     if (loadingMessage !== '') {
         return <p>{loadingMessage}</p>;
@@ -48,7 +51,7 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                     setLoadingMessage('');
                 });
             } else {
-                let current: Book[] = data.current;
+                const current: Book[] = data.current;
                 cards.push(...current.map((book, id) => {
                     return <Grid item key={++cnt}>
                         <Card>
@@ -59,7 +62,7 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                                 }
                             }>
                                 <CardContent style={{textAlign: "center"}}>
-                                    {`《${book.name}》`}
+                                    {`《${book.name}》${book.name === memory.lastBookName ? '*' : ' '}`}
                                 </CardContent>
                             </CardActionArea>
                         </Card>
@@ -87,22 +90,41 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                                 </CardContent>
                             </CardActionArea>
                         </Card>
-                    </Grid>);
-                cards.push(...book.chapters.map((chapter, id) => {
-                    return <Grid item key={++cnt}>
-                        <Card>
-                            <CardActionArea onClick={
-                                () => {
-                                    console.log(`click ${id}`);
-                                    update(Stage.Chapter, bookId, id);
-                                }
-                            }>
-                                <CardContent style={{textAlign: "center"}}>
-                                    {`${chapter.title}`}
-                                </CardContent>
-                            </CardActionArea>
-                        </Card>
                     </Grid>
+                );
+                if (memory.lastChapterId.hasOwnProperty(book.name)) {
+                    const oldChapterId: number = memory.lastChapterId[book.name];
+                    if (oldChapterId < book.chapters.length) {
+                        cards.push(
+                            <Grid item key={++cnt}>
+                                <Card>
+                                    <CardActionArea onClick={() => update(Stage.Chapter, bookId, oldChapterId)}>
+                                        <CardContent>
+                                            {`last read -> ${book.chapters[oldChapterId].title}`}
+                                        </CardContent>
+                                    </CardActionArea>
+                                </Card>
+                            </Grid>
+                        );
+                    }
+                }
+                cards.push(...book.chapters.map((chapter, id) => {
+                    return (
+                        <Grid item key={++cnt}>
+                            <Card>
+                                <CardActionArea onClick={
+                                    () => {
+                                        console.log(`click ${id}`);
+                                        update(Stage.Chapter, bookId, id);
+                                    }
+                                }>
+                                    <CardContent style={{textAlign: "center"}}>
+                                        {`${chapter.title}`}
+                                    </CardContent>
+                                </CardActionArea>
+                            </Card>
+                        </Grid>
+                    );
                 }));
             }
             break;
@@ -167,22 +189,6 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
         alignItems="stretch"
         spacing={2}
     >
-        {/*{this.bookmark.bookName !== undefined &&*/}
-        {/*<Grid item key={++cnt}>*/}
-        {/*    <Card className={classes.card}>*/}
-        {/*        <CardActionArea onClick={() => {*/}
-        {/*            this.setState({*/}
-        {/*                item: `${this.bookmark.bookIndex}.${this.bookmark.chapterIndex}`,*/}
-        {/*                loaded: false*/}
-        {/*            });*/}
-        {/*        }}>*/}
-        {/*            <CardContent>*/}
-        {/*                {`last read ->《${this.bookmark.bookName}》\t${this.bookmark.chapterName}`}*/}
-        {/*            </CardContent>*/}
-        {/*        </CardActionArea>*/}
-        {/*    </Card>*/}
-        {/*</Grid>*/}
-        {/*}*/}
         {cards}
     </Grid>;
 }
