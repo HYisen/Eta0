@@ -27,11 +27,7 @@ const ajax = async (method: string, payloadNullable: any | null, url: string) =>
     }
     let response = await fetch(url, init);
 
-    if (response.headers.get('Content-Type') === 'application/json') {
-        return await response.json();
-    } else {
-        return {};
-    }
+    return response.json();
 };
 
 const joinChapter = (content: string[]) => {
@@ -45,8 +41,8 @@ export class HttpMessenger implements Messenger {
         this.addr = addr;
     }
 
-    get = async (path: string) => {
-        let envelop: Envelop = await ajax('GET', null, `${this.addr}/${path}`);
+    private get = async (path: string) => {
+        let envelop: Envelop = await ajax('GET', null, `${this.addr}/db/${path}`);
         return envelop.content;
     };
 
