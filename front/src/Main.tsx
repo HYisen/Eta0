@@ -9,6 +9,7 @@ import {genTabProps, TabClazz, TabPanel} from "./components/TabPanel";
 import SwipeableViews from 'react-swipeable-views';
 import {HttpMessenger} from "./nexus";
 import ReaderTab, {Book, Stage} from "./components/ReaderTab";
+import ControlFab from "./components/ControlFab";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -51,6 +52,42 @@ function Main() {
         });
     };
 
+    const link = () => {
+        if (linking) {
+            return;
+        }
+
+        if (!linked) {
+            setLinking(true);
+
+            service.link(host, port);
+            service.addEventListener('open', () => {
+                unstable_batchedUpdates(() => {
+                    // Hope it would be automatically in future.
+                    setLinked(true);
+                    setLinking(false);
+                });
+            }, true);
+            service.addEventListener('close', () => {
+                unstable_batchedUpdates(() => {
+                    setLinked(false);
+                    setLinking(false);
+                });
+            }, true);
+        } else {
+            setLinking(true);
+            service.close();
+        }
+    };
+
+    const load = () => {
+        service.send('reload');
+        service.addEventListener("message", (ev) => {
+            window.console.log(`reload request reply = ${ev.data}`);
+            data.current = null;
+        }, true);
+    };
+
     function addMessage(cls: MessageType, msg: string): void {
         addItem({id: items.length, type: cls, message: msg, timestamp: Date.now()});
     }
@@ -88,6 +125,7 @@ function Main() {
                     <Tab {...genTabProps(TabClazz.Reader)} />
                 </Tabs>
             </AppBar>
+            <ControlFab canShow={value === TabClazz.Reader} stage={stage} linked={linked} link={link} load={load}/>
             <SwipeableViews
                 axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
                 index={value}
@@ -116,33 +154,7 @@ function Main() {
                         </Grid>
                         <Grid item>
                             <Button className={classes.button}
-                                    onClick={() => {
-                                        if (linking) {
-                                            return;
-                                        }
-
-                                        if (!linked) {
-                                            setLinking(true);
-
-                                            service.link(host, port);
-                                            service.addEventListener('open', () => {
-                                                unstable_batchedUpdates(() => {
-                                                    // Hope it would be automatically in future.
-                                                    setLinked(true);
-                                                    setLinking(false);
-                                                });
-                                            }, true);
-                                            service.addEventListener('close', () => {
-                                                unstable_batchedUpdates(() => {
-                                                    setLinked(false);
-                                                    setLinking(false);
-                                                });
-                                            }, true);
-                                        } else {
-                                            setLinking(true);
-                                            service.close();
-                                        }
-                                    }}
+                                    onClick={link}
                                     variant="contained"
                                     color={linked ? "primary" : "secondary"}
                             >{linking ? <LoopIcon/> : linked ? "ON" : "OFF"}</Button>
