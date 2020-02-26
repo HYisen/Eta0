@@ -112,7 +112,7 @@ function Main() {
                                         if (!linked) {
                                             setLinking(true);
 
-                                            service.link(host, port, true);
+                                            service.link(host, port);
                                             service.addEventListener('open', () => {
                                                 unstable_batchedUpdates(() => {
                                                     // Hope it would be automatically in future.

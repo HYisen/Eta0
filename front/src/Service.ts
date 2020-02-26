@@ -17,7 +17,11 @@ export class Service {
         return ++this.cnt;
     }
 
-    link(host: string, port: number, isSafe: boolean) {
+    link(host: string, port: number, isSafe?: boolean) {
+        if (isSafe === undefined) {
+            isSafe = port === 443;
+        }
+
         if (this.ws != null) {
             throw new Error('previous ws exists');
         }
