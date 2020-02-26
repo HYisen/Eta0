@@ -1,6 +1,5 @@
 export class Service {
     private static instance: Service;
-    private static cnt = 0;
     private ws: WebSocket | null = null;
 
     private constructor() {
@@ -11,10 +10,6 @@ export class Service {
             this.instance = new Service();
         }
         return this.instance;
-    }
-
-    static get Count(): number {
-        return ++this.cnt;
     }
 
     link(host: string, port: number, isSafe?: boolean) {
