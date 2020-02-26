@@ -143,7 +143,7 @@ export default function ReaderTab({messenger, data}: ReaderTabProps) {
                                 }
                             }>
                                 <CardContent style={{textAlign: "center"}}>
-                                    {`Back to Book《${bookName}》`}
+                                    {`《${bookName}》 ${chapter.title}`}
                                 </CardContent>
                             </CardActionArea>
                         </Card>
