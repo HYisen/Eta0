@@ -3,10 +3,12 @@ import {
     AppBar,
     Button,
     createStyles,
+    FormControlLabel,
     Grid,
     InputLabel,
     MenuItem,
     Select,
+    Switch,
     Tab,
     Tabs,
     TextField,
@@ -42,21 +44,27 @@ export enum Mode {
     WebSocket,
 }
 
+
 function Main() {
     const classes = useStyles({});
     const theme = useTheme();
 
-    const [host, setHost] = useState("localhost");
-    const [port, setPort] = useState(8964);
+    const memory: Memory = Memory.Instance;
+
+    window.console.log(memory);
+
+    const [host, setHost] = useState(memory.host);
+    const [port, setPort] = useState(memory.port);
+    const [mode, setMode] = useState(memory.mode);
+    const [dedicate, setDedicate] = useState(memory.dedicate);
+
     const [linked, setLinked] = useState(false);
     const [linking, setLinking] = useState(false);
     const [message, setMessage] = useState("");
 
-    const [mode, setMode] = useState(Mode.HTTP);
-
     const [items, addItem] = useReducer((state: Item[], action: Item) => state.concat(action), []);
 
-    const [value, setValue] = React.useState(TabClazz.Reader);
+    const [value, setValue] = React.useState(TabClazz.Config);
 
     const [stage, setStage] = useState(Stage.Shelf);
     const [bookId, setBookId] = useState(-1);
@@ -72,7 +80,6 @@ function Main() {
     }, [host, port, mode]);
     const data: MutableRefObject<Book[] | null> = useRef(null);
 
-    const memory: Memory = Memory.Instance;
 
     const update = (neoStage: Stage, neoBookId: number, neoChapterId: number) => {
         unstable_batchedUpdates(() => {
@@ -133,10 +140,15 @@ function Main() {
     }
 
     useEffect(() => {
-        service.addEventListener('message', onMessageAction);
+        let shouldMonitor: boolean = value === TabClazz.Config || !dedicate;
+        if (shouldMonitor) {
+            service.addEventListener('message', onMessageAction);
+        }
         service.addEventListener('error', onErrorAction);
         return () => {
-            service.removeEventListener('message', onMessageAction);
+            if (shouldMonitor) {
+                service.removeEventListener('message', onMessageAction);
+            }
             service.removeEventListener('error', onErrorAction);
         };
     });
@@ -208,13 +220,32 @@ function Main() {
                                 value={mode}
                                 onChange={(event => {
                                     // @ts-ignore
-                                    setMode(event.target.value);
+                                    let neoMode: Mode = event.target.value;
+
+                                    memory.mode = neoMode;
+                                    memory.save();
+
+                                    setMode(neoMode);
                                 })}
                             >
                                 <MenuItem value={Mode.HTTP}>HTTP</MenuItem>
                                 <MenuItem value={Mode.WebSocket}>WebSocket</MenuItem>
                             </Select>
                         </Grid>
+                        <FormControlLabel
+                            control={
+                                <Switch checked={dedicate} onChange={(() => {
+                                    let neoValue: boolean = !dedicate;
+
+                                    memory.dedicate = neoValue;
+                                    memory.save();
+
+                                    setDedicate(neoValue);
+
+                                })} value="dedicate"/>
+                            }
+                            label="dedicate"
+                        />
 
                         <Grid item>
                             <TextField
