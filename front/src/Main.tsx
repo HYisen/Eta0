@@ -186,6 +186,28 @@ function Main() {
                 <TabPanel value={value} index={TabClazz.Config} dir={theme.direction}>
                     <Grid container className={classes.root} spacing={4}>
                         <Grid item>
+                            <InputLabel id="mode-select-label">Reader Mode</InputLabel>
+                            <Select
+                                labelId="mode-select-label"
+                                id="mode-select"
+                                value={mode}
+                                onChange={(event => {
+                                    // @ts-ignore
+                                    let neoMode: Mode = event.target.value;
+
+                                    memory.mode = neoMode;
+                                    memory.save();
+
+                                    setMode(neoMode);
+                                })}
+                                style={{width: 120}}
+                            >
+                                <MenuItem value={Mode.HTTP}>HTTP</MenuItem>
+                                <MenuItem value={Mode.WebSocket}>WebSocket</MenuItem>
+                            </Select>
+                        </Grid>
+
+                        <Grid item>
                             <TextField
                                 id="host"
                                 label="host"
@@ -212,41 +234,24 @@ function Main() {
                             >{linking ? <LoopIcon/> : linked ? "ON" : "OFF"}</Button>
                         </Grid>
 
+
                         <Grid item>
-                            <InputLabel id="mode-select-label">Reader Mode</InputLabel>
-                            <Select
-                                labelId="mode-select-label"
-                                id="mode-select"
-                                value={mode}
-                                onChange={(event => {
-                                    // @ts-ignore
-                                    let neoMode: Mode = event.target.value;
+                            <FormControlLabel
+                                control={
+                                    <Switch checked={dedicate} onChange={(() => {
+                                        let neoValue: boolean = !dedicate;
 
-                                    memory.mode = neoMode;
-                                    memory.save();
+                                        memory.dedicate = neoValue;
+                                        memory.save();
 
-                                    setMode(neoMode);
-                                })}
-                            >
-                                <MenuItem value={Mode.HTTP}>HTTP</MenuItem>
-                                <MenuItem value={Mode.WebSocket}>WebSocket</MenuItem>
-                            </Select>
+                                        setDedicate(neoValue);
+
+                                    })} value="dedicate"/>
+                                }
+                                label="dedicate"
+                                style={{width: 115, marginTop: 10}}
+                            />
                         </Grid>
-                        <FormControlLabel
-                            control={
-                                <Switch checked={dedicate} onChange={(() => {
-                                    let neoValue: boolean = !dedicate;
-
-                                    memory.dedicate = neoValue;
-                                    memory.save();
-
-                                    setDedicate(neoValue);
-
-                                })} value="dedicate"/>
-                            }
-                            label="dedicate"
-                        />
-
                         <Grid item>
                             <TextField
                                 autoComplete="off"
