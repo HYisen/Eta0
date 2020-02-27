@@ -1,5 +1,18 @@
 import React, {MutableRefObject, useEffect, useMemo, useReducer, useRef, useState} from "react";
-import {AppBar, Button, createStyles, Grid, Tab, Tabs, TextField, Theme, useTheme} from "@material-ui/core";
+import {
+    AppBar,
+    Button,
+    createStyles,
+    Grid,
+    InputLabel,
+    MenuItem,
+    Select,
+    Tab,
+    Tabs,
+    TextField,
+    Theme,
+    useTheme
+} from "@material-ui/core";
 import LoopIcon from '@material-ui/icons/Loop';
 import ItemView, {Item, MessageType} from "./components/ItemView";
 import {Service} from "./Service";
@@ -7,7 +20,7 @@ import {unstable_batchedUpdates} from "react-dom";
 import {makeStyles} from "@material-ui/core/styles";
 import {genTabProps, TabClazz, TabPanel} from "./components/TabPanel";
 import SwipeableViews from 'react-swipeable-views';
-import {HttpMessenger} from "./nexus";
+import {HttpMessenger, WebSocketMessenger} from "./nexus";
 import ReaderTab, {Book, Stage} from "./components/ReaderTab";
 import ControlFab from "./components/ControlFab";
 import Memory from "./Memory";
@@ -24,6 +37,11 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
+export enum Mode {
+    HTTP,
+    WebSocket,
+}
+
 function Main() {
     const classes = useStyles({});
     const theme = useTheme();
@@ -34,6 +52,8 @@ function Main() {
     const [linking, setLinking] = useState(false);
     const [message, setMessage] = useState("");
 
+    const [mode, setMode] = useState(Mode.HTTP);
+
     const [items, addItem] = useReducer((state: Item[], action: Item) => state.concat(action), []);
 
     const [value, setValue] = React.useState(TabClazz.Reader);
@@ -42,7 +62,14 @@ function Main() {
     const [bookId, setBookId] = useState(-1);
     const [chapterId, setChapterId] = useState(-1);
 
-    const messenger = useMemo(() => new HttpMessenger(`http://${host}:${port}`), [host, port]);
+    const messenger = useMemo(() => {
+        switch (mode) {
+            case Mode.HTTP:
+                return new HttpMessenger(`${port === 443 ? 'https' : 'http'}://${host}:${port}`);
+            case Mode.WebSocket:
+                return new WebSocketMessenger(Service.Instance);
+        }
+    }, [host, port, mode]);
     const data: MutableRefObject<Book[] | null> = useRef(null);
 
     const memory: Memory = Memory.Instance;
@@ -171,6 +198,22 @@ function Main() {
                                     variant="contained"
                                     color={linked ? "primary" : "secondary"}
                             >{linking ? <LoopIcon/> : linked ? "ON" : "OFF"}</Button>
+                        </Grid>
+
+                        <Grid item>
+                            <InputLabel id="mode-select-label">Reader Mode</InputLabel>
+                            <Select
+                                labelId="mode-select-label"
+                                id="mode-select"
+                                value={mode}
+                                onChange={(event => {
+                                    // @ts-ignore
+                                    setMode(event.target.value);
+                                })}
+                            >
+                                <MenuItem value={Mode.HTTP}>HTTP</MenuItem>
+                                <MenuItem value={Mode.WebSocket}>WebSocket</MenuItem>
+                            </Select>
                         </Grid>
 
                         <Grid item>
