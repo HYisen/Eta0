@@ -52,4 +52,9 @@ export default class Memory {
     save() {
         window.localStorage.setItem(ITEM_NAME, JSON.stringify(this));
     }
+
+    clear() {
+        Object.assign(this, Memory.genNormal());
+        this.save();
+    }
 }

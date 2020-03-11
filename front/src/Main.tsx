@@ -283,6 +283,15 @@ function Main() {
                         </Grid>
                         <Grid item>
                             <Button className={classes.button}
+                                    style={{width: 200}}
+                                    onClick={() => memory.clear()}
+                                    variant="contained"
+                                    color="default"
+                            >ERASE MEMORY</Button>
+                        </Grid>
+
+                        <Grid item>
+                            <Button className={classes.button}
                                     onClick={() => {
                                         addMessage(MessageType.Client, message);
                                         service.send(message);
