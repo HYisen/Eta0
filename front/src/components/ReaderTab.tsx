@@ -185,7 +185,10 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                     cards.push(
                         <Grid item key={++cnt}>
                             <Card>
-                                <CardActionArea onClick={() => update(stage, bookId, chapterId + 1)}>
+                                <CardActionArea onClick={() => {
+                                    update(stage, bookId, chapterId + 1);
+                                    window.scrollTo(0, 50);
+                                }}>
                                     <CardContent style={{textAlign: "center"}}>
                                         {`NEXT`}
                                     </CardContent>
