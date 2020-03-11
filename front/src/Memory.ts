@@ -8,14 +8,16 @@ export default class Memory {
     port: number;
     mode: Mode;
     dedicate: boolean;
+    reverse: boolean;
     lastBookName: string;
     lastChapterId: any;
 
-    constructor(host: string, port: number, mode: Mode, dedicate: boolean, lastBookName: string, lastChapterId: any) {
+    constructor(host: string, port: number, mode: Mode, dedicate: boolean, reverse: boolean, lastBookName: string, lastChapterId: any) {
         this.host = host;
         this.port = port;
         this.mode = mode;
         this.dedicate = dedicate;
+        this.reverse = reverse;
         this.lastBookName = lastBookName;
         this.lastChapterId = lastChapterId;
     }
@@ -25,11 +27,15 @@ export default class Memory {
             let neo: Memory | null = this.load();
             if (neo === null) {
                 window.console.log("gen neo Memory");
-                neo = new Memory('localhost', 8964, Mode.HTTP, true, '', {});
+                neo = this.genNormal();
             }
             this.instance = neo;
         }
         return this.instance;
+    }
+
+    private static genNormal() {
+        return new Memory('localhost', 8964, Mode.HTTP, true, false, '', {});
     }
 
     private static load() {
@@ -38,7 +44,7 @@ export default class Memory {
             let data: Memory = JSON.parse(contentNullable);
             console.log(`reconstruct shiori from:`);
             console.log(data);
-            return new Memory(data.host, data.port, data.mode, data.dedicate, data.lastBookName, data.lastChapterId);
+            return new Memory(data.host, data.port, data.mode, data.dedicate, data.reverse, data.lastBookName, data.lastChapterId);
         }
         return null;
     }
