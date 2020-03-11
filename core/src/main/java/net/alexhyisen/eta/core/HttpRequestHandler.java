@@ -116,7 +116,9 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             if (data.isPresent()) {
                 RandomAccessFile file = data.get();
                 HttpResponse response = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.OK);
-                response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                if (origin != null) {
+                    response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                }
                 if (request.uri().endsWith(".css")) {
                     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/css; charset=utf-8");
                 } else if (request.uri().endsWith(".js")) {
