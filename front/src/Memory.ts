@@ -44,7 +44,10 @@ export default class Memory {
             let data: Memory = JSON.parse(contentNullable);
             console.log(`reconstruct shiori from:`);
             console.log(data);
-            return new Memory(data.host, data.port, data.mode, data.dedicate, data.reverse, data.lastBookName, data.lastChapterId);
+            // The reconstructed data may be malformed,
+            // but it's user's responsibility to protect its browser's localStorage,
+            // anyway, as the clear method is provided, bad data can be overrode.
+            return data;
         }
         return null;
     }
