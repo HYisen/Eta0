@@ -5,6 +5,7 @@ export interface Messenger {
     getShelf: () => Promise<string[]>
     getBook: (bookId: number) => Promise<string[]>
     getChapter: (bookId: number, chapterId: number) => Promise<string[]>
+    isBad: () => boolean
 }
 
 interface Envelop {
@@ -51,6 +52,7 @@ export class HttpMessenger implements Messenger {
     getShelf = async () => {
         return this.get(``);
     };
+    isBad = () => false;
 }
 
 export class WebSocketMessenger implements Messenger {
@@ -61,10 +63,16 @@ export class WebSocketMessenger implements Messenger {
     }
 
     round = async (command: string) => {
-        return new Promise<String>(resolve => {
-            this.service.addEventListener('message', ev => {
-                resolve(ev.data);
-            }, true);
+        return new Promise<string>(resolve => {
+            const listener = (ev: MessageEvent) => {
+                const msg: string = ev.data;
+                if (msg.startsWith("Welcome.")) {
+                    window.console.log("skip potential welcome message:\n" + msg);
+                } else {
+                    resolve(msg);
+                }
+            };
+            this.service.addEventListener('message', listener, true);
             this.service.send(command);
         });
     };
@@ -84,4 +92,5 @@ export class WebSocketMessenger implements Messenger {
     getShelf = async () => {
         return this.access(`ls .`);
     };
+    isBad = () => this.service.bad;
 }

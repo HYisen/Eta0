@@ -24,7 +24,6 @@ export class Service {
         let protocol = isSafe ? 'wss' : 'ws';
         let address = `${protocol}://${host}:${port}/ws`;
         this.ws = new WebSocket(address);
-        window.console.log(this.ws.protocol);
     }
 
     addEventListener<K extends keyof WebSocketEventMap>(type: K, listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any, once?: boolean): void {
@@ -48,5 +47,9 @@ export class Service {
             throw new Error('ws does not exist');
         }
         this.ws.send(data);
+    }
+
+    get bad(): boolean {
+        return this.ws == null || this.ws.readyState !== WebSocket.OPEN;
     }
 }

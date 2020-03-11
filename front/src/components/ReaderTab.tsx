@@ -36,6 +36,10 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
 
     window.console.log("render reader");
 
+    if (messenger.isBad()) {
+        return <p>Service is Bad</p>
+    }
+
     if (loadingMessage !== '') {
         return <p>{loadingMessage}</p>;
     }
