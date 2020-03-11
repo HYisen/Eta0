@@ -175,7 +175,7 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                 if (book.chapters.length > chapterId + 1) {
                     if (prefetch) {
                         setTimeout(() => {
-                            messenger.getChapter(bookId, chapterId).then(content => {
+                            messenger.getChapter(bookId, chapterId + 1).then(content => {
                                 if (book != null && book.chapters != null && book.chapters[chapterId + 1] != null) {
                                     book.chapters[chapterId + 1].content = content;
                                 }
