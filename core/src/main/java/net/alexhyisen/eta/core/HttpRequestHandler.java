@@ -95,7 +95,9 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             FullHttpResponse response = new DefaultFullHttpResponse(
                     request.protocolVersion(), HttpResponseStatus.OK, content);
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=UTF-8");
-            response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+            if (origin != null) {
+                response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+            }
             boolean keepAlive = HttpUtil.isKeepAlive(request);
             if (keepAlive) {
                 response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
