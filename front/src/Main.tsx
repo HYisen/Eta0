@@ -57,6 +57,7 @@ function Main() {
     const [port, setPort] = useState(memory.port);
     const [mode, setMode] = useState(memory.mode);
     const [dedicate, setDedicate] = useState(memory.dedicate);
+    const [reverse, setReverse] = useState(memory.reverse);
 
     const [linked, setLinked] = useState(false);
     const [linking, setLinking] = useState(false);
@@ -249,6 +250,23 @@ function Main() {
                                     })} value="dedicate"/>
                                 }
                                 label="dedicate"
+                                style={{width: 115, marginTop: 10}}
+                            />
+                        </Grid>
+                        <Grid item>
+                            <FormControlLabel
+                                control={
+                                    <Switch checked={reverse} onChange={(() => {
+                                        let neoValue: boolean = !reverse;
+
+                                        memory.reverse = neoValue;
+                                        memory.save();
+
+                                        setReverse(neoValue);
+
+                                    })} value="reverse"/>
+                                }
+                                label="reverse"
                                 style={{width: 115, marginTop: 10}}
                             />
                         </Grid>

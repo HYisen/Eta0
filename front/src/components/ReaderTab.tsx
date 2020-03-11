@@ -108,7 +108,7 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                         );
                     }
                 }
-                cards.push(...book.chapters.map((chapter, id) => {
+                let chapterCards = book.chapters.map((chapter, id) => {
                     return (
                         <Grid item key={++cnt}>
                             <Card>
@@ -125,7 +125,11 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                             </Card>
                         </Grid>
                     );
-                }));
+                });
+                if (memory.reverse) {
+                    chapterCards.reverse();
+                }
+                cards.push(...chapterCards);
             }
             break;
         case Stage.Chapter:
