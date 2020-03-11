@@ -27,9 +27,10 @@ export interface ReaderTabProps {
     bookId: number;
     chapterId: number;
     update: (stage: Stage, bookId: number, chapterId: number) => void;
+    prefetch: boolean;
 }
 
-export default function ReaderTab({messenger, data, stage, bookId, chapterId, update}: ReaderTabProps) {
+export default function ReaderTab({messenger, data, stage, bookId, chapterId, update, prefetch}: ReaderTabProps) {
     const [loadingMessage, setLoadingMessage] = useState('');
 
     const memory = Memory.Instance;
@@ -172,6 +173,15 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                     </Grid>);
                 // @ts-ignore
                 if (book.chapters.length > chapterId + 1) {
+                    if (prefetch) {
+                        setTimeout(() => {
+                            messenger.getChapter(bookId, chapterId).then(content => {
+                                if (book != null && book.chapters != null && book.chapters[chapterId + 1] != null) {
+                                    book.chapters[chapterId + 1].content = content;
+                                }
+                            });
+                        }, 0);
+                    }
                     cards.push(
                         <Grid item key={++cnt}>
                             <Card>
@@ -199,4 +209,4 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
     >
         {cards}
     </Grid>;
-}
+};

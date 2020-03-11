@@ -9,15 +9,19 @@ export default class Memory {
     mode: Mode;
     dedicate: boolean;
     reverse: boolean;
+    prefetch: boolean;
     lastBookName: string;
     lastChapterId: any;
 
-    constructor(host: string, port: number, mode: Mode, dedicate: boolean, reverse: boolean, lastBookName: string, lastChapterId: any) {
+
+    constructor(host: string, port: number, mode: Mode,
+                dedicate: boolean, reverse: boolean, prefetch: boolean, lastBookName: string, lastChapterId: any) {
         this.host = host;
         this.port = port;
         this.mode = mode;
         this.dedicate = dedicate;
         this.reverse = reverse;
+        this.prefetch = prefetch;
         this.lastBookName = lastBookName;
         this.lastChapterId = lastChapterId;
     }
@@ -35,7 +39,8 @@ export default class Memory {
     }
 
     private static genNormal() {
-        return new Memory('localhost', 8964, Mode.HTTP, true, false, '', {});
+        return new Memory(
+            'localhost', 8964, Mode.HTTP, true, true, true, '', {});
     }
 
     private static load() {
@@ -47,7 +52,13 @@ export default class Memory {
             // The reconstructed data may be malformed,
             // but it's user's responsibility to protect its browser's localStorage,
             // anyway, as the clear method is provided, bad data can be overrode.
-            return data;
+            let ret: Memory = this.genNormal();
+            for (let attr in ret) {
+                // @ts-ignore
+                // noinspection JSUnfilteredForInLoop
+                ret[attr] = data[attr];
+            }
+            return ret;
         }
         return null;
     }

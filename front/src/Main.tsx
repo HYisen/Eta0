@@ -1,4 +1,13 @@
-import React, {MutableRefObject, useEffect, useMemo, useReducer, useRef, useState} from "react";
+import React, {
+    Dispatch,
+    MutableRefObject,
+    SetStateAction,
+    useEffect,
+    useMemo,
+    useReducer,
+    useRef,
+    useState
+} from "react";
 import {
     AppBar,
     Button,
@@ -51,13 +60,12 @@ function Main() {
 
     const memory: Memory = Memory.Instance;
 
-    window.console.log(memory);
-
     const [host, setHost] = useState(memory.host);
     const [port, setPort] = useState(memory.port);
     const [mode, setMode] = useState(memory.mode);
     const [dedicate, setDedicate] = useState(memory.dedicate);
     const [reverse, setReverse] = useState(memory.reverse);
+    const [prefetch, setPrefetch] = useState(memory.prefetch);
 
     const [linked, setLinked] = useState(false);
     const [linking, setLinking] = useState(false);
@@ -140,6 +148,25 @@ function Main() {
         addItem({id: items.length, type: cls, message: msg, timestamp: Date.now()});
     }
 
+    // I don't use a Component because extra incarnation to solve change from uncontrolled problem is ugly.
+    const genConfigSwitchGridItem = (propertyName: string, value: boolean, setValue: Dispatch<SetStateAction<boolean>>,
+                                     width: number) => (
+        <Grid item>
+            <FormControlLabel
+                control={
+                    <Switch checked={value} onChange={(() => {
+                        // @ts-ignore
+                        memory[propertyName] = !value;
+                        memory.save();
+                        setValue(!value);
+                    })} value={propertyName}/>
+                }
+                label={propertyName}
+                style={{width: width, marginTop: 10}}
+            />
+        </Grid>
+    );
+
     useEffect(() => {
         let shouldMonitor: boolean = value === TabClazz.Config || !dedicate;
         if (shouldMonitor) {
@@ -187,28 +214,6 @@ function Main() {
                 <TabPanel value={value} index={TabClazz.Config} dir={theme.direction}>
                     <Grid container className={classes.root} spacing={4}>
                         <Grid item>
-                            <InputLabel id="mode-select-label">Reader Mode</InputLabel>
-                            <Select
-                                labelId="mode-select-label"
-                                id="mode-select"
-                                value={mode}
-                                onChange={(event => {
-                                    // @ts-ignore
-                                    let neoMode: Mode = event.target.value;
-
-                                    memory.mode = neoMode;
-                                    memory.save();
-
-                                    setMode(neoMode);
-                                })}
-                                style={{width: 120}}
-                            >
-                                <MenuItem value={Mode.HTTP}>HTTP</MenuItem>
-                                <MenuItem value={Mode.WebSocket}>WebSocket</MenuItem>
-                            </Select>
-                        </Grid>
-
-                        <Grid item>
                             <TextField
                                 id="host"
                                 label="host"
@@ -235,41 +240,39 @@ function Main() {
                             >{linking ? <LoopIcon/> : linked ? "ON" : "OFF"}</Button>
                         </Grid>
 
-
                         <Grid item>
-                            <FormControlLabel
-                                control={
-                                    <Switch checked={dedicate} onChange={(() => {
-                                        let neoValue: boolean = !dedicate;
+                            <InputLabel id="mode-select-label">Reader Mode</InputLabel>
+                            <Select
+                                labelId="mode-select-label"
+                                id="mode-select"
+                                value={mode}
+                                onChange={(event => {
+                                    // @ts-ignore
+                                    let neoMode: Mode = event.target.value;
 
-                                        memory.dedicate = neoValue;
-                                        memory.save();
+                                    memory.mode = neoMode;
+                                    memory.save();
 
-                                        setDedicate(neoValue);
-
-                                    })} value="dedicate"/>
-                                }
-                                label="dedicate"
-                                style={{width: 115, marginTop: 10}}
-                            />
+                                    setMode(neoMode);
+                                })}
+                                style={{width: 120}}
+                            >
+                                <MenuItem value={Mode.HTTP}>HTTP</MenuItem>
+                                <MenuItem value={Mode.WebSocket}>WebSocket</MenuItem>
+                            </Select>
                         </Grid>
+                        {genConfigSwitchGridItem('dedicate', dedicate, setDedicate, 100)}
+                        {genConfigSwitchGridItem('reverse', reverse, setReverse, 100)}
+                        {genConfigSwitchGridItem('prefetch', prefetch, setPrefetch, 100)}
                         <Grid item>
-                            <FormControlLabel
-                                control={
-                                    <Switch checked={reverse} onChange={(() => {
-                                        let neoValue: boolean = !reverse;
-
-                                        memory.reverse = neoValue;
-                                        memory.save();
-
-                                        setReverse(neoValue);
-
-                                    })} value="reverse"/>
-                                }
-                                label="reverse"
-                                style={{width: 115, marginTop: 10}}
-                            />
+                            <Button className={classes.button}
+                                    style={{width: 160}}
+                                    onClick={() => memory.clear()}
+                                    variant="contained"
+                                    color="default"
+                            >ERASE MEMORY</Button>
                         </Grid>
+
                         <Grid item>
                             <TextField
                                 autoComplete="off"
@@ -281,15 +284,6 @@ function Main() {
                                 style={{width: 312}}
                             />
                         </Grid>
-                        <Grid item>
-                            <Button className={classes.button}
-                                    style={{width: 200}}
-                                    onClick={() => memory.clear()}
-                                    variant="contained"
-                                    color="default"
-                            >ERASE MEMORY</Button>
-                        </Grid>
-
                         <Grid item>
                             <Button className={classes.button}
                                     onClick={() => {
@@ -308,7 +302,7 @@ function Main() {
                 </TabPanel>
                 <TabPanel value={value} index={TabClazz.Reader} dir={theme.direction}>
                     <ReaderTab messenger={messenger} data={data}
-                               stage={stage} bookId={bookId} chapterId={chapterId} update={update}/>
+                               stage={stage} bookId={bookId} chapterId={chapterId} update={update} prefetch={prefetch}/>
                 </TabPanel>
             </SwipeableViews>
         </div>
