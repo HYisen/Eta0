@@ -76,8 +76,21 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
             }
             break;
         case Stage.Book:
-            // @ts-ignore
-            let book: Book = data.current[bookId];
+            let shelf = data.current;
+            if (shelf === null) {
+                setLoadingMessage(`reloading book and shelf`);
+                (async function () {
+                    const books: Book[] = (await messenger.getShelf()).map(name => ({name: name, chapters: null}));
+                    books[bookId].chapters = (await messenger.getBook(bookId)).map(title => ({
+                        title: title,
+                        content: null
+                    }));
+                    data.current = books;
+                    setLoadingMessage('');
+                })();
+                break;
+            }
+            let book: Book = shelf[bookId];
 
             if (book.chapters === null) {
                 setLoadingMessage(`loading book ${book.name}`);
