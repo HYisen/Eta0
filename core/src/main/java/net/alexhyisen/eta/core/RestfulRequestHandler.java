@@ -27,6 +27,8 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
         String uri = request.uri().substring(request.uri().indexOf('/', 1));
         Utility.log(LogCls.LOOP, "rrh accepted " + uri);
 
+        System.out.println(request);
+
         if (uri.equals("/info") && request.method().equals(HttpMethod.GET)) {
             String infoMsg = "{\"desc\":\"info message\"}";
             Utils.respondJson(ctx, request, infoMsg.getBytes());
