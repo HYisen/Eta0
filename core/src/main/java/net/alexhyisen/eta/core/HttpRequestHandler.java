@@ -33,7 +33,29 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         Utility.log(LogCls.LOOP, "get request to " + request.uri());
         String[] path = request.uri().split("/");
-        if (mark.equalsIgnoreCase(request.uri())) {
+        String origin = request.headers().get(HttpHeaderNames.ORIGIN);
+
+        if (request.method().equals(HttpMethod.OPTIONS)) {
+            DefaultHttpResponse resp = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.ACCEPTED);
+            resp.headers()
+                    .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin)
+                    .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, HttpMethod.GET.asciiName())
+                    .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, HttpHeaderNames.CONTENT_TYPE)
+                    .set(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, 3600)
+                    .set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
+            boolean keepAlive = HttpUtil.isKeepAlive(request);
+            if (keepAlive) {
+                resp.headers()
+                        .set(HttpHeaderNames.CONTENT_LENGTH, 0)
+                        .set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+            }
+            ctx.write(resp);
+            ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            if (!keepAlive) {
+                future.addListener(ChannelFutureListener.CLOSE);
+            }
+            Utility.log(LogCls.LOOP, "guarantee CORS to " + origin);
+        } else if (mark.equalsIgnoreCase(request.uri())) {
             ctx.fireChannelRead(request.retain());
             Utility.log(LogCls.LOOP, "pass to WebSocket");
         } else if (request.method().equals(HttpMethod.GET) &&
@@ -73,6 +95,9 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             FullHttpResponse response = new DefaultFullHttpResponse(
                     request.protocolVersion(), HttpResponseStatus.OK, content);
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=UTF-8");
+            if (origin != null) {
+                response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+            }
             boolean keepAlive = HttpUtil.isKeepAlive(request);
             if (keepAlive) {
                 response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
@@ -93,6 +118,9 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             if (data.isPresent()) {
                 RandomAccessFile file = data.get();
                 HttpResponse response = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.OK);
+                if (origin != null) {
+                    response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                }
                 if (request.uri().endsWith(".css")) {
                     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/css; charset=utf-8");
                 } else if (request.uri().endsWith(".js")) {
