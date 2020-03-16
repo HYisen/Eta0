@@ -6,7 +6,8 @@ public enum LogCls {
     BOOK("book"),
     SALE("sale"),
     LOOP("loop"),
-    INFO("info");
+    INFO("info"),
+    AUTH("auth");
 
     private final String desc;
     private final String path;

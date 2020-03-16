@@ -7,9 +7,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +38,7 @@ public class Keeper {
         }
     }
 
-    private static String genRandomString() {
+    public static String genRandomString() {
         var sb = new StringBuilder();
         for (int i = 0; i < 10; i++) {
             sb.append(genRandomChar());

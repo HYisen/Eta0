@@ -10,6 +10,14 @@ import net.alexhyisen.Utility;
 import net.alexhyisen.log.LogCls;
 
 class Utils {
+    private static final String ALLOW_HEADERS = String.join(",",
+            HttpHeaderNames.CONTENT_TYPE,
+            RestfulRequestHandler.HEADER_CREDENTIAL_NAME);
+    private static final String ALLOW_METHODS = String.join(",",
+            HttpMethod.GET.asciiName(),
+            HttpMethod.POST.asciiName(),
+            HttpMethod.PUT.asciiName());
+
     /**
      * @param contentLength  Only if keepAlive is true would be set in headers' content-length.
      * @param originNullable If not null, would be set in headers' access-control-allow-origin.
@@ -41,11 +49,11 @@ class Utils {
         }
     }
 
-    static void respond(ChannelHandlerContext ctx, FullHttpRequest request, String contentType, byte[] payload) {
+    static void respond(ChannelHandlerContext ctx, FullHttpRequest request, HttpResponseStatus status, String contentType, byte[] payload) {
         ByteBuf content = Unpooled.wrappedBuffer(payload);
 
         FullHttpResponse response = new DefaultFullHttpResponse(
-                request.protocolVersion(), HttpResponseStatus.OK, content);
+                request.protocolVersion(), status, content);
 
         boolean keepAlive = HttpUtil.isKeepAlive(request);
         setupHeaders(response.headers(), contentType,
@@ -53,21 +61,21 @@ class Utils {
         sendResponse(keepAlive, response, ctx, null);
     }
 
-    static void respondJson(ChannelHandlerContext ctx, FullHttpRequest request, byte[] payload) {
-        respond(ctx, request, "application/json; charset=UTF-8", payload);
+    static void respondOkJson(ChannelHandlerContext ctx, FullHttpRequest request, byte[] payload) {
+        respond(ctx, request, HttpResponseStatus.OK, "application/json; charset=UTF-8", payload);
     }
 
     static void guaranteeCorsPreflight(ChannelHandlerContext ctx, FullHttpRequest request) {
         DefaultHttpResponse resp = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.ACCEPTED);
         resp.headers()
-                .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, HttpMethod.GET.asciiName())
-                .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, HttpHeaderNames.CONTENT_TYPE)
+                .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, ALLOW_METHODS)
+                .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, ALLOW_HEADERS)
                 .set(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, 3600);
 
         String origin = request.headers().get(HttpHeaderNames.ORIGIN);
         boolean keepAlive = HttpUtil.isKeepAlive(request);
         setupHeaders(resp.headers(), "text/plain", keepAlive, 0, origin);
         sendResponse(keepAlive, resp, ctx, null);
-        Utility.log(LogCls.LOOP, "guarantee CORS to " + origin);
+        Utility.log(LogCls.AUTH, String.format("guarantee CORS %s -> %s", ctx.channel().remoteAddress(), origin));
     }
 }

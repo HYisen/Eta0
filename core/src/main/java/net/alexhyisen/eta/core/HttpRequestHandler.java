@@ -89,7 +89,8 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                     throw new RuntimeException("Failed to match RESTful HTTP request");
             }
 
-            Utils.respond(ctx, request, "application/json; charset=UTF-8", envelope.toJson().getBytes());
+            Utils.respond(ctx, request, HttpResponseStatus.OK,
+                    "application/json; charset=UTF-8", envelope.toJson().getBytes());
         } else {
             //manage HTTP1.1 100 Continue situation
             if (HttpUtil.is100ContinueExpected(request)) {
