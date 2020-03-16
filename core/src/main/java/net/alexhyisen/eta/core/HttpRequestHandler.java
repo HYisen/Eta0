@@ -1,5 +1,7 @@
 package net.alexhyisen.eta.core;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
@@ -34,7 +36,29 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         Utility.log(LogCls.LOOP, "get request to " + request.uri());
         String[] path = request.uri().split("/");
-        if (mark.equalsIgnoreCase(request.uri())) {
+        String origin = request.headers().get(HttpHeaderNames.ORIGIN);
+
+        if (request.method().equals(HttpMethod.OPTIONS)) {
+            DefaultHttpResponse resp = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.ACCEPTED);
+            resp.headers()
+                    .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin)
+                    .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, HttpMethod.GET.asciiName())
+                    .set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, HttpHeaderNames.CONTENT_TYPE)
+                    .set(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, 3600)
+                    .set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
+            boolean keepAlive = HttpUtil.isKeepAlive(request);
+            if (keepAlive) {
+                resp.headers()
+                        .set(HttpHeaderNames.CONTENT_LENGTH, 0)
+                        .set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+            }
+            ctx.write(resp);
+            ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            if (!keepAlive) {
+                future.addListener(ChannelFutureListener.CLOSE);
+            }
+            Utility.log(LogCls.LOOP, "guarantee CORS to " + origin);
+        } else if (mark.equalsIgnoreCase(request.uri())) {
             ctx.fireChannelRead(request.retain());
             Utility.log(LogCls.LOOP, "pass to WebSocket");
         } else if (request.method().equals(HttpMethod.GET) &&
@@ -69,18 +93,37 @@ class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                     throw new RuntimeException("Failed to match RESTful HTTP request");
             }
 
-            Utils.respond(ctx, request, "application/json; charset=UTF-8", envelope.toJson().getBytes());
+            ByteBuf content = Unpooled.wrappedBuffer(envelope.toJson().getBytes());
+
+            FullHttpResponse response = new DefaultFullHttpResponse(
+                    request.protocolVersion(), HttpResponseStatus.OK, content);
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=UTF-8");
+            if (origin != null) {
+                response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+            }
+            boolean keepAlive = HttpUtil.isKeepAlive(request);
+            if (keepAlive) {
+                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
+                response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+            }
+            ctx.write(response);
+            ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            if (!keepAlive) {
+                future.addListener(ChannelFutureListener.CLOSE);
+            }
         } else {
             //manage HTTP1.1 100 Continue situation
             if (HttpUtil.is100ContinueExpected(request)) {
                 ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
             }
 
-            //likely I should integrate the following procedure to Util::respond.
             var data = web.get(request.uri());
             if (data.isPresent()) {
                 RandomAccessFile file = data.get();
                 HttpResponse response = new DefaultHttpResponse(request.protocolVersion(), HttpResponseStatus.OK);
+                if (origin != null) {
+                    response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                }
                 if (request.uri().endsWith(".css")) {
                     response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/css; charset=utf-8");
                 } else if (request.uri().endsWith(".js")) {

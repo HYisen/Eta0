@@ -53,7 +53,6 @@ public class Envelope {
         this.name = null;//The appearance of NPE implies a misread of EnvelopeType, let it die.
         this.content = orig.stream()
                 .map(Book::getName)
-                .peek(System.out::println)
                 //It seems as if a generic toArray must be used. An swallowed Exception occurs under such circumstance.
                 //java.lang.ClassCastException: [Ljava.lang.Object; cannot be cast to [Ljava.lang.String
                 .collect(Collectors.toList()).toArray(new String[orig.size()]);

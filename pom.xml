@@ -53,6 +53,7 @@
         <module>gui</module>
         <module>core</module>
         <module>surface</module>
+        <module>website</module>
     </modules>
     <dependencies>
         <dependency>

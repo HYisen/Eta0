@@ -29,8 +29,8 @@ public class Web {
             if (file.isDirectory()) {
                 File[] children = file.listFiles();
                 if (children != null) {
-                    prefix += file.getName() + "/";
-                    load(children, prefix);
+                    String nextPrefix = prefix + file.getName() + "/";
+                    load(children, nextPrefix);
                 }
             } else if (file.isFile()) {
                 String name = file.getName();
@@ -54,6 +54,11 @@ public class Web {
         if (files != null) {
             data.clear();
             load(files, "/");
+        }
+
+        if (data.containsKey("/index")) {
+            Utility.log(LogCls.LOOP, "map /index to /");
+            data.put("/", data.get("/index"));
         }
 
         data.forEach((k, v) -> Utility.log(LogCls.LOOP, String.format(

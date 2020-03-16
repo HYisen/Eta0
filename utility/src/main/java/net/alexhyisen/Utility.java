@@ -117,4 +117,15 @@ public class Utility {
         record = Instant.now();
         System.out.printf("T+%4dms %s\n", interval, msg);
     }
+
+    public static String extractName(Path path) {
+        String filename = path.getFileName().toString();
+        int endIndex = filename.lastIndexOf('.');
+        return endIndex == -1 ? filename : filename.substring(0, endIndex);
+    }
+
+    public static Path changeExtName(Path path, String targetExtName) {
+        String str = path.toAbsolutePath().toString();
+        return Path.of(str.substring(0, str.lastIndexOf('.') + 1) + targetExtName);
+    }
 }
