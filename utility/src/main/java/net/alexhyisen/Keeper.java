@@ -21,7 +21,7 @@ public class Keeper {
     static final Path DB_PATH = Path.of(".", "shadow");
     static final Path DB_PATH_SWP = Path.of(".", "shadow.swp");
 
-    private static Map<String, String> db;//username->salted hashed password
+    private static Map<String, String> db = new HashMap<>();//username->salted hashed password
 
     private static ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
     private static Set<String> memory = Collections.newSetFromMap(new ConcurrentHashMap<>());
