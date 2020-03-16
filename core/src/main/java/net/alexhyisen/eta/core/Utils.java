@@ -14,6 +14,10 @@ class Utils {
         FullHttpResponse response = new DefaultFullHttpResponse(
                 request.protocolVersion(), HttpResponseStatus.OK, content);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        String origin = request.headers().get(HttpHeaderNames.ORIGIN);
+        if (origin != null) {
+            response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+        }
         boolean keepAlive = HttpUtil.isKeepAlive(request);
         if (keepAlive) {
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
