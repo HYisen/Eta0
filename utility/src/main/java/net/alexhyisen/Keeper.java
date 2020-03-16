@@ -56,6 +56,7 @@ public class Keeper {
             token = genRandomString();
         }
         String finalToken = token;
+        memory.add(token);
         ses.schedule(() -> memory.remove(finalToken), 3600, TimeUnit.SECONDS);
         return token;
     }
