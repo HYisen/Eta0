@@ -30,7 +30,7 @@ public class Keeper {
     private static char genRandomChar() {
         int code = rand.nextInt(62);
         if (code < 10) {
-            return (char)('0' + code);
+            return (char) ('0' + code);
         } else if (code < 36) {
             return (char) ('a' + code - 10);
         } else {

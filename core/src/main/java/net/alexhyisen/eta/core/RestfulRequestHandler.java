@@ -61,7 +61,7 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
             String token = request.headers().get(HEADER_CREDENTIAL_NAME);
             String json = request.content().toString(StandardCharsets.UTF_8);
             var credential = new Credential(json);
-            if (!keeper.isAuthorized(token)) {
+            if (token != null && !keeper.isAuthorized(token)) {
                 Utils.respond(ctx, request, HttpResponseStatus.FORBIDDEN,
                         "text/plain", String.format("bad token %s", token).getBytes());
             } else {
