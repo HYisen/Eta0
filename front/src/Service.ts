@@ -1,6 +1,10 @@
 export class Service {
     private static instance: Service;
     private ws: WebSocket | null = null;
+    username: string = 'unset_username';
+    password: string = 'unset_password';
+    addr: string = '';
+    private token: string | null = null;
 
     private constructor() {
     }
@@ -10,6 +14,53 @@ export class Service {
             this.instance = new Service();
         }
         return this.instance;
+    }
+
+    async ajax(method: string, payloadNullable: any | null, path: string, canRefreshToken = true): Promise<Response> {
+        if (this.token === null) {
+            this.token = await this.fetchToken();
+        }
+
+        let init: RequestInit = {
+            method: method,
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        };
+        if (this.token !== null) {
+            // @ts-ignore
+            init.headers['credential'] = this.token;
+        }
+        if (payloadNullable !== null) {
+            init.body = JSON.stringify(payloadNullable);
+        }
+
+        const response = await fetch(`${this.addr}/${path}`, init);
+
+        // Token may be invalid as time goes by, try to refresh once if it's forbidden.
+        if (response.status === 403 && canRefreshToken) {
+            this.token = await this.fetchToken();
+            return this.ajax(method, payloadNullable, path, false);
+        } else {
+            return response;
+        }
+    }
+
+    async fetchToken() {
+        const url = `${this.addr}/api/auth`;
+        let init: RequestInit = {
+            method: 'post',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({username: this.username, password: this.password})
+        };
+        let response = await fetch(url, init);
+        return await response.text();
     }
 
     link(host: string, port: number, isSafe?: boolean) {

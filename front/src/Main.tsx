@@ -14,9 +14,11 @@ import {
     createStyles,
     FormControlLabel,
     Grid,
+    IconButton,
     InputLabel,
     MenuItem,
     Select,
+    Snackbar,
     Switch,
     Tab,
     Tabs,
@@ -25,6 +27,7 @@ import {
     useTheme
 } from "@material-ui/core";
 import LoopIcon from '@material-ui/icons/Loop';
+import CloseIcon from '@material-ui/icons/Close';
 import ItemView, {Item, MessageType} from "./components/ItemView";
 import {Service} from "./Service";
 import {unstable_batchedUpdates} from "react-dom";
@@ -53,6 +56,7 @@ export enum Mode {
     WebSocket,
 }
 
+const genAddr = (host: string, port: number): string => `${port === 443 ? 'https' : 'http'}://${host}:${port}`;
 
 function Main() {
     const classes = useStyles({});
@@ -71,6 +75,12 @@ function Main() {
     const [linking, setLinking] = useState(false);
     const [message, setMessage] = useState("");
 
+    const [username, setUsername] = useState('root');
+    const [password, setPassword] = useState('root');
+    const [open, setOpen] = useState(false);
+    const [info, setInfo] = useState('fuck');
+    const [countdown, setCountDown] = useState(0);
+
     const [items, addItem] = useReducer((state: Item[], action: Item) => state.concat(action), []);
 
     const [value, setValue] = React.useState(TabClazz.Config);
@@ -82,7 +92,7 @@ function Main() {
     const messenger = useMemo(() => {
         switch (mode) {
             case Mode.HTTP:
-                return new HttpMessenger(`${port === 443 ? 'https' : 'http'}://${host}:${port}`);
+                return new HttpMessenger(genAddr(host, port));
             case Mode.WebSocket:
                 return new WebSocketMessenger(Service.Instance);
         }
@@ -111,6 +121,10 @@ function Main() {
 
         if (!linked) {
             setLinking(true);
+
+            service.username = username;
+            service.password = password;
+            service.addr = genAddr(host, port);
 
             service.link(host, port);
             service.addEventListener('open', () => {
@@ -295,6 +309,78 @@ function Main() {
                                     color="primary"
                             >SEND</Button>
                         </Grid>
+
+                        <Grid item>
+                            <TextField
+                                id="username"
+                                label="username"
+                                value={username}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setUsername(event.target.value)}
+                                style={{width: 200}}
+                            />
+                        </Grid>
+                        <Grid item>
+                            <TextField
+                                id="password"
+                                label="password"
+                                value={password}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
+                                style={{width: 200}}
+                            />
+                        </Grid>
+                        <Grid item>
+                            <Button className={classes.button}
+                                    onClick={() => {
+                                        (async function () {
+                                            let resp = await service.ajax('put', {
+                                                username: username,
+                                                password: password
+                                            }, 'api/auth');
+
+                                            if (resp.ok) {
+                                                window.console.log("succeed to auth");
+                                                setInfo("succeed to auth");
+
+                                                const duration = 5;
+                                                for (let delay = 0; delay < duration; ++delay) {
+                                                    setTimeout(() => {
+                                                        setCountDown(duration - delay);
+                                                    }, 1000 * delay);
+                                                }
+
+                                                setOpen(true);
+                                            }
+                                        })();
+                                    }}
+                                    variant="contained"
+                                    color="default"
+                            >AUTH</Button>
+                        </Grid>
+                        <Snackbar
+                            anchorOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'left',
+                            }}
+                            open={open}
+                            autoHideDuration={5000}
+                            onClose={(event: React.SyntheticEvent<any>, reason: string) => {
+                                if (reason === 'clickaway') {
+                                    return;
+                                }
+                                setOpen(false);
+                            }}
+                            message={`${info} (${countdown}s left)`}
+                            action={
+                                <React.Fragment>
+                                    <IconButton size="small" aria-label="close" color="inherit" onClick={() => {
+                                        setOpen(false);
+                                    }}>
+                                        <CloseIcon fontSize="small"/>
+                                    </IconButton>
+                                </React.Fragment>
+                            }
+                        />
+
                         <Grid item xs={12}>
                             <ItemView data={items}/>
                         </Grid>
