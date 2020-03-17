@@ -106,7 +106,7 @@ class NettyServer implements Closeable {
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<>() {
                     @Override
-                    protected void initChannel(Channel channel) {
+                    protected void initChannel(Channel channel) throws IOException {
                         if (sslContext != null) {
                             channel.pipeline().addLast(sslContext.newHandler(channel.alloc()));
                         }
