@@ -177,7 +177,7 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                 cards.push(
                     <Grid item key={++cnt}>
                         <Card>
-                            <CardContent style={{textIndent: "2em"}}>
+                            <CardContent style={{textIndent: "2em", padding: "8px"}}>
                                 {chapter.content?.map(line => {
                                     return <p key={++cnt}>{line}</p>;
                                 })}
