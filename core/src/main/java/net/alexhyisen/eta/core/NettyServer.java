@@ -44,7 +44,7 @@ class NettyServer implements Closeable {
     private final EventLoopGroup eventGroup = new NioEventLoopGroup();
     private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
 
-    private List<Book> data;
+    private Source source;
     private List<Task> jobs = new ArrayList<>();
     private NettyServer self = this;
     private Web web;
@@ -53,9 +53,8 @@ class NettyServer implements Closeable {
     private SslContext sslContext = null;//null for HTTPS disabled situation
 
     private void init() {
-        Source source = new Source();
+        source = new Source();
         source.load(Paths.get("sourceAll"));
-        data = source.getData();
         try {
             web = new Web();
             web.load();
@@ -101,6 +100,7 @@ class NettyServer implements Closeable {
 
     ChannelFuture start(InetSocketAddress address) {
         init();
+        List<Book> data = source.getData();
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(eventGroup)
                 .channel(NioServerSocketChannel.class)
@@ -116,7 +116,8 @@ class NettyServer implements Closeable {
                                 .addLast(new HttpObjectAggregator(65536))
                                 .addLast(new RestfulRequestHandler("api",
                                         Config.getFromDefault("adminUsername"),
-                                        Config.getFromDefault("adminPassword")))
+                                        Config.getFromDefault("adminPassword"),
+                                        source))
                                 .addLast(new HttpRequestHandler("/ws", data, web))
                                 .addLast("ws", new WebSocketServerProtocolHandler("/ws"))
                                 .addLast(new TextWebSocketFrameHandler(data, jobs, web, overseer, channelGroup, self));

@@ -7,5 +7,5 @@ module book {
     requires htmlcleaner;
 
     exports net.alexhyisen.eta.book;
-    opens net.alexhyisen.eta.book to java.xml.bind, javafx.base;
+    opens net.alexhyisen.eta.book to java.xml.bind, javafx.base, gson;
 }

@@ -1,5 +1,5 @@
 import React, {forwardRef} from "react";
-import MaterialTable, {Column, Icons} from "material-table";
+import MaterialTable, {Column, Icons, Query, QueryResult} from "material-table";
 
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
@@ -60,6 +60,8 @@ interface TableState {
 }
 
 export function EditorTab() {
+    const service = Service.Instance;
+
     const [state, setState] = React.useState<TableState>({
         columns: genColumns('name', 'path', 'link'),
         data: [
@@ -70,8 +72,6 @@ export function EditorTab() {
             },
         ],
     });
-
-    const service = Service.Instance;
 
     const create = async (neoRow: Row) => {
         let resp = await service.ajax('get', null, 'api/resource');
@@ -84,6 +84,13 @@ export function EditorTab() {
             data.push(neoRow);
             return {...prevState, data}
         });
+    };
+
+    const retrieve = async (query: Query<Row>): Promise<QueryResult<Row>> => {
+        window.console.log(query)
+        let response = await service.ajax('get', null, 'api/resource');
+        const data: Row[] = await JSON.parse(await response.text());
+        return {data: data, page: 0, totalCount: data.length};
     };
 
     function extractIndex(oldRow: Row) {
@@ -125,8 +132,8 @@ export function EditorTab() {
         <MaterialTable
             icons={tableIcons}
             title="Editable Example"
-            columns={state.columns}
-            data={state.data}
+            columns={genColumns('name', 'path', 'link')}
+            data={retrieve}
             editable={{
                 onRowAdd: create,
                 onRowUpdate: update,

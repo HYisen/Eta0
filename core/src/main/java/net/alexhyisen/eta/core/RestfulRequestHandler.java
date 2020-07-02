@@ -1,5 +1,6 @@
 package net.alexhyisen.eta.core;
 
+import com.google.gson.Gson;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -7,6 +8,8 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import net.alexhyisen.Keeper;
 import net.alexhyisen.Utility;
+import net.alexhyisen.eta.book.Source;
+import net.alexhyisen.eta.book.SourceElement;
 import net.alexhyisen.log.LogCls;
 
 import java.io.IOException;
@@ -21,14 +24,17 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
     private final String adminUsername;
     private final String adminPassword;
 
+    private final Source source;
+
     public static String HEADER_CREDENTIAL_NAME = "credential";
     private static Keeper keeper = new Keeper();
 
 
-    public RestfulRequestHandler(String prefix, String adminUsername, String adminPassword) throws IOException {
+    public RestfulRequestHandler(String prefix, String adminUsername, String adminPassword, Source source) throws IOException {
         this.prefix = prefix;
         this.adminUsername = adminUsername;
         this.adminPassword = adminPassword;
+        this.source = source;
 
         keeper.load();
     }
@@ -90,6 +96,13 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
                     return;
                 }
                 Utility.log(LogCls.AUTH, String.format("%s add %s", token, credential.getUsername()));
+            }
+        } else if (uri.equals("/resource")) {
+            if (checkAuthorized(ctx, request)) {
+                if (request.method().equals(HttpMethod.GET)) {
+                    var data = source.getData().stream().map(SourceElement::new).collect(Collectors.toList());
+                    Utils.respondOkJson(ctx, request, new Gson().toJson(data).getBytes());
+                }
             }
         }
     }
