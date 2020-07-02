@@ -33,6 +33,23 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
         keeper.load();
     }
 
+    /**
+     * Would also respond with 403 FORBIDDEN if can not pass.
+     *
+     * @param ctx     the content to possible send failed response if failed the check
+     * @param request the request need to be check
+     * @return if the request is authorized
+     */
+    private boolean checkAuthorized(ChannelHandlerContext ctx, FullHttpRequest request) {
+        String token = request.headers().get(HEADER_CREDENTIAL_NAME);
+        if (token != null && !keeper.isAuthorized(token)) {
+            Utils.respond(ctx, request, HttpResponseStatus.FORBIDDEN,
+                    "text/plain", String.format("bad token %s", token).getBytes());
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
         if (!request.uri().startsWith("/" + prefix + "/")) {
@@ -61,10 +78,7 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
             String token = request.headers().get(HEADER_CREDENTIAL_NAME);
             String json = request.content().toString(StandardCharsets.UTF_8);
             var credential = new Credential(json);
-            if (token != null && !keeper.isAuthorized(token)) {
-                Utils.respond(ctx, request, HttpResponseStatus.FORBIDDEN,
-                        "text/plain", String.format("bad token %s", token).getBytes());
-            } else {
+            if (checkAuthorized(ctx, request)) {
                 try {
                     keeper.put(credential.getUsername(), credential.getPassword());
                     Utils.respond(ctx, request, HttpResponseStatus.CREATED,

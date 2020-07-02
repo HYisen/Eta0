@@ -16,6 +16,7 @@ import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
+import {Service} from "../Service";
 
 const tableIcons: Icons = {
     Add: forwardRef((props, ref) => <AddBox {...props} ref={ref}/>),
@@ -70,7 +71,13 @@ export function EditorTab() {
         ],
     });
 
+    const service = Service.Instance;
+
     const create = async (neoRow: Row) => {
+        let resp = await service.ajax('get', null, 'api/resource');
+        if (resp.ok) {
+            window.console.log(resp.body);
+        }
         await sleep(600);
         setState(prevState => {
             const data = [...prevState.data];
