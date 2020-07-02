@@ -38,6 +38,7 @@ import {HttpMessenger, WebSocketMessenger} from "./nexus";
 import ReaderTab, {Book, Stage} from "./components/ReaderTab";
 import ControlFab from "./components/ControlFab";
 import Memory from "./Memory";
+import {EditorTab} from "./components/EditorTab";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -217,6 +218,7 @@ function Main() {
                 >
                     <Tab {...genTabProps(TabClazz.Config)} />
                     <Tab {...genTabProps(TabClazz.Reader)} />
+                    <Tab {...genTabProps(TabClazz.Editor)} />
                 </Tabs>
             </AppBar>
             <ControlFab canShow={value === TabClazz.Reader} stage={stage} linked={linked} link={link} load={load}/>
@@ -389,6 +391,9 @@ function Main() {
                 <TabPanel value={value} index={TabClazz.Reader} dir={theme.direction}>
                     <ReaderTab messenger={messenger} data={data}
                                stage={stage} bookId={bookId} chapterId={chapterId} update={update} prefetch={prefetch}/>
+                </TabPanel>
+                <TabPanel value={value} index={TabClazz.Editor} dir={theme.direction}>
+                    <EditorTab/>
                 </TabPanel>
             </SwipeableViews>
         </div>

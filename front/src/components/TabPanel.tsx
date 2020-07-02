@@ -3,7 +3,8 @@ import {Box, Typography} from "@material-ui/core";
 
 export enum TabClazz {
     Config,
-    Reader
+    Reader,
+    Editor
 }
 
 function toLabel(clz: TabClazz) {
@@ -12,6 +13,8 @@ function toLabel(clz: TabClazz) {
             return "config";
         case TabClazz.Reader:
             return "reader";
+        case TabClazz.Editor:
+            return "editor"
     }
 }
 
