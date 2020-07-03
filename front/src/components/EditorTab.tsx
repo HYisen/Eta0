@@ -44,13 +44,20 @@ function genColumns(...name: string[]): Column<any>[] {
     });
 }
 
-export function EditorTab() {
+export interface EditorTabProps {
+    link: (() => void) | null; // null if it is already linked therefore no need to link.
+}
+
+export function EditorTab({link}: EditorTabProps) {
     const source: Source = Source.Instance;
+    if (link) {
+        link();
+    }
 
     return (
         <MaterialTable
             icons={tableIcons}
-            title="Editable Example"
+            title="Sources"
             columns={genColumns('name', 'path', 'link')}
             data={query => source.retrieve(query)}
             editable={{

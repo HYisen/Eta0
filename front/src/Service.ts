@@ -1,9 +1,13 @@
+import Memory from "./Memory";
+import {genAddr} from "./Main";
+
 export class Service {
     private static instance: Service;
     private ws: WebSocket | null = null;
-    username: string = 'unset_username';
-    password: string = 'unset_password';
-    addr: string = '';
+    private readonly memory: Memory = Memory.Instance;
+    username: string = this.memory.username;
+    password: string = this.memory.password;
+    addr: string = genAddr(this.memory.host, this.memory.port);
     private token: string | null = null;
 
     private constructor() {
@@ -37,6 +41,7 @@ export class Service {
             init.body = JSON.stringify(payloadNullable);
         }
 
+        window.console.log(init);
         const response = await fetch(`${this.addr}/${path}`, init);
 
         // Token may be invalid as time goes by, try to refresh once if it's forbidden.
@@ -50,6 +55,7 @@ export class Service {
 
     async fetchToken() {
         const url = `${this.addr}/api/auth`;
+        const json = JSON.stringify({username: this.username, password: this.password});
         let init: RequestInit = {
             method: 'post',
             mode: 'cors',
@@ -57,9 +63,13 @@ export class Service {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({username: this.username, password: this.password})
+            body: json
         };
         let response = await fetch(url, init);
+        if (!response.ok) {
+            window.console.log("failed to get token by " + json);
+            return null;
+        }
         return await response.text();
     }
 

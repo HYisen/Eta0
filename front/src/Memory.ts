@@ -12,10 +12,12 @@ export default class Memory {
     prefetch: boolean;
     lastBookName: string;
     lastChapterId: any;
+    username: string;
+    password: string;
 
 
-    constructor(host: string, port: number, mode: Mode,
-                dedicate: boolean, reverse: boolean, prefetch: boolean, lastBookName: string, lastChapterId: any) {
+    constructor(host: string, port: number, mode: Mode, dedicate: boolean, reverse: boolean, prefetch: boolean,
+                lastBookName: string, lastChapterId: any, username: string, password: string) {
         this.host = host;
         this.port = port;
         this.mode = mode;
@@ -24,6 +26,8 @@ export default class Memory {
         this.prefetch = prefetch;
         this.lastBookName = lastBookName;
         this.lastChapterId = lastChapterId;
+        this.username = username;
+        this.password = password;
     }
 
     static get Instance() {
@@ -39,8 +43,7 @@ export default class Memory {
     }
 
     private static genNormal() {
-        return new Memory(
-            'localhost', 8964, Mode.HTTP, true, true, true, '', {});
+        return new Memory('localhost', 8964, Mode.HTTP, true, true, true, '', {}, '', '');
     }
 
     private static load() {

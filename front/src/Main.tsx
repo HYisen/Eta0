@@ -57,7 +57,7 @@ export enum Mode {
     WebSocket,
 }
 
-const genAddr = (host: string, port: number): string => `${port === 443 ? 'https' : 'http'}://${host}:${port}`;
+export const genAddr = (host: string, port: number): string => `${port === 443 ? 'https' : 'http'}://${host}:${port}`;
 
 function Main() {
     const classes = useStyles({});
@@ -76,8 +76,8 @@ function Main() {
     const [linking, setLinking] = useState(false);
     const [message, setMessage] = useState("");
 
-    const [username, setUsername] = useState('root');
-    const [password, setPassword] = useState('root');
+    const [username, setUsername] = useState(memory.username);
+    const [password, setPassword] = useState(memory.password);
     const [open, setOpen] = useState(false);
     const [info, setInfo] = useState('fuck');
     const [countdown, setCountDown] = useState(0);
@@ -351,6 +351,10 @@ function Main() {
                                                 }
 
                                                 setOpen(true);
+
+                                                memory.username = username;
+                                                memory.password = password;
+                                                memory.save();
                                             }
                                         })();
                                     }}
@@ -393,7 +397,7 @@ function Main() {
                                stage={stage} bookId={bookId} chapterId={chapterId} update={update} prefetch={prefetch}/>
                 </TabPanel>
                 <TabPanel value={value} index={TabClazz.Editor} dir={theme.direction}>
-                    <EditorTab/>
+                    <EditorTab link={linked ? null : link}/>
                 </TabPanel>
             </SwipeableViews>
         </div>
