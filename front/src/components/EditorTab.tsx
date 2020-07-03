@@ -74,16 +74,10 @@ export function EditorTab() {
     });
 
     const create = async (neoRow: Row) => {
-        let resp = await service.ajax('get', null, 'api/resource');
-        if (resp.ok) {
-            window.console.log(resp.body);
+        let resp = await service.ajax('post', neoRow, 'api/resource');
+        if (!resp.ok) {
+            alert(`failed to post ${JSON.stringify(neoRow)}`);
         }
-        await sleep(600);
-        setState(prevState => {
-            const data = [...prevState.data];
-            data.push(neoRow);
-            return {...prevState, data}
-        });
     };
 
     const retrieve = async (query: Query<Row>): Promise<QueryResult<Row>> => {

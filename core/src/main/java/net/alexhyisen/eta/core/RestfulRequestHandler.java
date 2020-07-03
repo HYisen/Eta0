@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import net.alexhyisen.Keeper;
 import net.alexhyisen.Utility;
+import net.alexhyisen.eta.book.Book;
 import net.alexhyisen.eta.book.Source;
 import net.alexhyisen.eta.book.SourceElement;
 import net.alexhyisen.log.LogCls;
@@ -102,6 +103,12 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
                 if (request.method().equals(HttpMethod.GET)) {
                     var data = source.getData().stream().map(SourceElement::new).collect(Collectors.toList());
                     Utils.respondOkJson(ctx, request, new Gson().toJson(data).getBytes());
+                } else if (request.method().equals(HttpMethod.POST)) {
+                    String json = request.content().toString(StandardCharsets.UTF_8);
+                    SourceElement neo = new Gson().fromJson(json, SourceElement.class);
+                    source.getData().add(new Book(neo.getLink(), neo.getPath(), neo.getName()));
+                    Utility.log(LogCls.BOOK, "add book " + json);
+                    Utils.respondOkJson(ctx, request, Integer.toString(source.getData().size()).getBytes());
                 }
             }
         }
