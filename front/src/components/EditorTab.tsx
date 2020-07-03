@@ -67,9 +67,9 @@ export function EditorTab() {
         let response = await service.ajax('get', null, 'api/resource');
         let data: Row[] = await JSON.parse(await response.text());
         if (query.search.length > 0) {
-            data = data.filter(row => row.name.includes(query.search)
-                || row.link.includes(query.search)
-                || row.path.includes(query.search));
+            data = data.filter(row => row.name?.includes(query.search)
+                || row.link?.includes(query.search)
+                || row.path?.includes(query.search));
         }
         const start = query.pageSize * query.page;
         return {data: data.slice(start, start + query.pageSize), page: query.page, totalCount: data.length};
