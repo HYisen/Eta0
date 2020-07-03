@@ -1,5 +1,5 @@
 import React, {forwardRef} from "react";
-import MaterialTable, {Column, Icons, Query, QueryResult} from "material-table";
+import MaterialTable, {Column, Icons} from "material-table";
 
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
@@ -16,7 +16,7 @@ import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
-import {Service} from "../Service";
+import {Source} from "../Source";
 
 const tableIcons: Icons = {
     Add: forwardRef((props, ref) => <AddBox {...props} ref={ref}/>),
@@ -44,96 +44,19 @@ function genColumns(...name: string[]): Column<any>[] {
     });
 }
 
-interface Row {
-    name: string;
-    path: string;
-    link: string;
-}
-
 export function EditorTab() {
-    const service = Service.Instance;
-
-    const create = async (neoRow: Row) => {
-        fillEmpty(neoRow, 'name', 'path', 'link');
-        let resp = await service.ajax('post', neoRow, 'api/resource');
-        if (!resp.ok) {
-            alert(`failed to post ${JSON.stringify(neoRow)}`);
-        }
-    };
-
-    const retrieve = async (query: Query<Row>): Promise<QueryResult<Row>> => {
-        // a cache system would improve the performance,
-        // which shall have the ability to get notified from front-end modification.
-        window.console.log(query)
-        let response = await service.ajax('get', null, 'api/resource');
-        let data: Row[] = await JSON.parse(await response.text());
-        if (query.search.length > 0) {
-            data = data.filter(row => row.name?.includes(query.search)
-                || row.link?.includes(query.search)
-                || row.path?.includes(query.search));
-        }
-        const start = query.pageSize * query.page;
-        return {data: data.slice(start, start + query.pageSize), page: query.page, totalCount: data.length};
-    };
-
-    function extractIndex(oldRow: Row) {
-        // The ts of onRowUpdate is not specific enough.
-        // Practice through `JSON.stringify(oldRow)` confirm that there is a index value in it.
-        // [The doc from material-ui](https://material-ui.com/api/table/) use `data[data.indexOf(oldData)]`,
-        // while [the doc from material-table](https://material-table.com/#/docs/features/editable) use current one.
-        // It's a hack to the type system.
-        // @ts-ignore
-        return oldRow.tableData.id;
-    }
-
-    function extractDiff(neo: any, old: any, ...attrName: string[]): object {
-        let diff: any = {};
-        for (let name of attrName) {
-            if (neo[name] !== old[name]) {
-                diff[name] = neo[name];
-            }
-        }
-        return diff;
-    }
-
-    function fillEmpty(target: any, ...attr: string[]) {
-        for (let name of attr) {
-            if (!target.hasOwnProperty(name) || target[name] === null) {
-                target[name] = "";
-            }
-        }
-    }
-
-    const update = async (neoRow: Row, oldRow?: Row) => {
-        // When? I don't know. The demo use it, therefore I use it.
-        if (!oldRow) {
-            return
-        }
-
-        const diff = extractDiff(neoRow, oldRow, 'name', 'path', 'link');
-        let resp = await service.ajax('put', diff, `api/resource/${extractIndex(oldRow)}`);
-        if (!resp.ok) {
-            alert(`failed to delete ${JSON.stringify(oldRow)}`);
-        }
-    };
-
-    const remove = async (oldRow: Row) => {
-        let resp = await service.ajax('delete', null, `api/resource/${extractIndex(oldRow)}`);
-        if (!resp.ok) {
-            alert(`failed to delete ${JSON.stringify(oldRow)}`);
-        }
-    };
+    const source: Source = Source.Instance;
 
     return (
         <MaterialTable
             icons={tableIcons}
             title="Editable Example"
             columns={genColumns('name', 'path', 'link')}
-            data={retrieve}
+            data={query => source.retrieve(query)}
             editable={{
-                onRowAdd: create,
-                onRowUpdate: update,
-                onRowDelete: remove,
+                onRowAdd: newData => source.create(newData),
+                onRowUpdate: (newData, oldData) => source.update(newData, oldData),
+                onRowDelete: oldData => source.remove(oldData),
             }}
         />
     );
