@@ -98,7 +98,7 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
                 }
                 Utility.log(LogCls.AUTH, String.format("%s add %s", token, credential.getUsername()));
             }
-        } else if (uri.equals("/resource")) {
+        } else if (uri.startsWith("/resource")) {
             if (checkAuthorized(ctx, request)) {
                 if (request.method().equals(HttpMethod.GET)) {
                     var data = source.getData().stream().map(SourceElement::new).collect(Collectors.toList());
@@ -108,6 +108,11 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
                     SourceElement neo = new Gson().fromJson(json, SourceElement.class);
                     source.getData().add(new Book(neo.getLink(), neo.getPath(), neo.getName()));
                     Utility.log(LogCls.BOOK, "add book " + json);
+                    Utils.respondOkJson(ctx, request, Integer.toString(source.getData().size()).getBytes());
+                } else if (request.method().equals(HttpMethod.DELETE)) {
+                    int index = Integer.parseInt(uri.substring("/resource/".length()));
+                    Book book = source.getData().remove(index);
+                    Utility.log(LogCls.BOOK, "del book " + book.getName() + " at " + index);
                     Utils.respondOkJson(ctx, request, Integer.toString(source.getData().size()).getBytes());
                 }
             }

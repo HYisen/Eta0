@@ -116,13 +116,13 @@ export function EditorTab() {
     };
 
     const remove = async (oldRow: Row) => {
-        await sleep(100);
-
-        setState((prevState: TableState) => {
-            const data = [...prevState.data];
-            data.splice(extractIndex(oldRow), 1);
-            return {...prevState, data};
-        });
+        // There has the information.
+        // @ts-ignore
+        const index = oldRow.tableData.id;
+        let resp = await service.ajax('delete', null, `api/resource/${index}`);
+        if (!resp.ok) {
+            alert(`failed to delete ${JSON.stringify(oldRow)}`);
+        }
     };
 
     return (

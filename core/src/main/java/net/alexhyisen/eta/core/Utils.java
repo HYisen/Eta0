@@ -16,7 +16,8 @@ class Utils {
     private static final String ALLOW_METHODS = String.join(",",
             HttpMethod.GET.asciiName(),
             HttpMethod.POST.asciiName(),
-            HttpMethod.PUT.asciiName());
+            HttpMethod.PUT.asciiName(),
+            HttpMethod.DELETE.asciiName());
 
     /**
      * @param contentLength  Only if keepAlive is true would be set in headers' content-length.
