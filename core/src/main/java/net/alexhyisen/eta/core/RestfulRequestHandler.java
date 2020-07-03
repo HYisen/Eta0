@@ -49,7 +49,7 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
      */
     private boolean checkAuthorized(ChannelHandlerContext ctx, FullHttpRequest request) {
         String token = request.headers().get(HEADER_CREDENTIAL_NAME);
-        if (token != null && !keeper.isAuthorized(token)) {
+        if (token == null || !keeper.isAuthorized(token)) {
             Utils.respond(ctx, request, HttpResponseStatus.FORBIDDEN,
                     "text/plain", String.format("bad token %s", token).getBytes());
             return false;
@@ -149,34 +149,37 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
     }
 
     private static class Credential {
-        private final String username;
-        private final String password;
+        private String username;
+        private String password;
 
         public Credential(String username, String password) {
             this.username = username;
             this.password = password;
         }
 
-        public Credential(String json) {
-            String inner = extractInner(json);
-            Map<String, String> dict = Arrays
-                    .stream(inner.split(","))
-                    .map(v -> v.split(":"))
-                    .collect(Collectors.toMap(v -> extractInner(v[0]), v -> extractInner(v[1])));
-            this.username = dict.get("username");
-            this.password = dict.get("password");
+        public Credential() {
         }
 
-        private static String extractInner(String orig) {
-            return orig.substring(1, orig.length() - 1);
+        public Credential(String json) {
+            Credential credential = new Gson().fromJson(json, Credential.class);
+            this.username = credential.getUsername();
+            this.password = credential.getPassword();
         }
 
         public String getUsername() {
             return username;
         }
 
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
         public String getPassword() {
             return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 

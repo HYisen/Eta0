@@ -54,6 +54,10 @@ export class Service {
     }
 
     async fetchToken() {
+        if (this.username === "" || this.password === "") {
+            return null;
+        }
+
         const url = `${this.addr}/api/auth`;
         const json = JSON.stringify({username: this.username, password: this.password});
         let init: RequestInit = {

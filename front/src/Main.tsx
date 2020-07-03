@@ -334,6 +334,8 @@ function Main() {
                             <Button className={classes.button}
                                     onClick={() => {
                                         (async function () {
+                                            service.username = username;
+                                            service.password = password;
                                             let resp = await service.ajax('put', {
                                                 username: username,
                                                 password: password
