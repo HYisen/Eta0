@@ -54,6 +54,7 @@ export function EditorTab() {
     const service = Service.Instance;
 
     const create = async (neoRow: Row) => {
+        fillEmpty(neoRow, 'name', 'path', 'link');
         let resp = await service.ajax('post', neoRow, 'api/resource');
         if (!resp.ok) {
             alert(`failed to post ${JSON.stringify(neoRow)}`);
@@ -93,6 +94,14 @@ export function EditorTab() {
             }
         }
         return diff;
+    }
+
+    function fillEmpty(target: any, ...attr: string[]) {
+        for (let name of attr) {
+            if (!target.hasOwnProperty(name) || target[name] === null) {
+                target[name] = "";
+            }
+        }
     }
 
     const update = async (neoRow: Row, oldRow?: Row) => {
