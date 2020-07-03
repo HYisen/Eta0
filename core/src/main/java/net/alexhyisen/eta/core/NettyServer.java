@@ -54,7 +54,7 @@ class NettyServer implements Closeable {
 
     private void init() {
         source = new Source();
-        source.load(Paths.get("sourceAll"));
+        source.load();
         try {
             web = new Web();
             web.load();

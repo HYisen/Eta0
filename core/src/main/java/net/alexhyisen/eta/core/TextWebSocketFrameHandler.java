@@ -18,7 +18,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
@@ -188,7 +187,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                     break;
                 case "reload":
                     //Possible duplicates in NettyService::init, shall be merged into one.
-                    Source source = new Source(Paths.get("sourceAll"));
+                    Source source = new Source();
                     source.load();
                     data.clear();//Remember, data doesn't belong to this.
                     data.addAll(source.getData());
