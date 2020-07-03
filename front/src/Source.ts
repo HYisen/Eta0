@@ -86,20 +86,26 @@ export class Source {
             // If query.orderBy!==undefined, then orderBy.field is a string represent attr.
             // @ts-ignore
             const key: string = query.orderBy.field;
-
+            const isAscending: boolean = query.orderDirection === 'asc';
 
             result.sort(((a, b) => {
-                window.console.log(a)
-                window.console.log(b)
                 // Row must have attribute with name key.
                 // @ts-ignore
-                return a[key].localeCompare(b[key]);
+                let result = a[key].localeCompare(b[key]);
+                if (!isAscending) {
+                    result = -result;
+                }
+                return result;
             }));
         }
 
         // build
         const start = query.pageSize * query.page;
         return {data: result.slice(start, start + query.pageSize), page: query.page, totalCount: result.length};
+    }
+
+    private findIndex(oldRow: Row): number {
+        return this.cache.indexOf(oldRow);
     }
 
     async update(neoRow: Row, oldRow?: Row) {
@@ -123,14 +129,4 @@ export class Source {
         }
         this.modified = true;
     };
-
-    private findIndex(oldRow: Row): number {
-        // The ts of onRowUpdate is not specific enough.
-        // Practice through `JSON.stringify(oldRow)` confirm that there is a index value in it.
-        // [The doc from material-ui](https://material-ui.com/api/table/) use `cache[]`,
-        // while [the doc from material-table](https://material-table.com/#/docs/features/editable) use current one.
-        // It's a hack to the type system.
-        // @ts-ignore
-        return this.cache.indexOf(oldRow);
-    }
 }
