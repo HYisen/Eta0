@@ -121,10 +121,7 @@ export function EditorTab() {
     };
 
     const remove = async (oldRow: Row) => {
-        // There has the information.
-        // @ts-ignore
-        const index = oldRow.tableData.id;
-        let resp = await service.ajax('delete', null, `api/resource/${index}`);
+        let resp = await service.ajax('delete', null, `api/resource/${extractIndex(oldRow)}`);
         if (!resp.ok) {
             alert(`failed to delete ${JSON.stringify(oldRow)}`);
         }
