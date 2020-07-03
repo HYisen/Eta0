@@ -87,10 +87,13 @@ export function EditorTab() {
     };
 
     const retrieve = async (query: Query<Row>): Promise<QueryResult<Row>> => {
+        // a cache system would improve the performance,
+        // which shall have the ability to get notified from front-end modification.
         window.console.log(query)
         let response = await service.ajax('get', null, 'api/resource');
         const data: Row[] = await JSON.parse(await response.text());
-        return {data: data, page: 0, totalCount: data.length};
+        const start = query.pageSize * query.page;
+        return {data: data.slice(start, start + query.pageSize), page: query.page, totalCount: data.length};
     };
 
     function extractIndex(oldRow: Row) {
