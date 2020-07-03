@@ -109,11 +109,30 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
                     source.getData().add(new Book(neo.getLink(), neo.getPath(), neo.getName()));
                     Utility.log(LogCls.BOOK, "add book " + json);
                     Utils.respondOkJson(ctx, request, Integer.toString(source.getData().size()).getBytes());
-                } else if (request.method().equals(HttpMethod.DELETE)) {
+                } else if (uri.lastIndexOf("/") > 0) {
                     int index = Integer.parseInt(uri.substring("/resource/".length()));
-                    Book book = source.getData().remove(index);
-                    Utility.log(LogCls.BOOK, "del book " + book.getName() + " at " + index);
-                    Utils.respondOkJson(ctx, request, Integer.toString(source.getData().size()).getBytes());
+
+                    if (request.method().equals(HttpMethod.DELETE)) {
+                        Book book = source.getData().remove(index);
+                        Utility.log(LogCls.BOOK, "del book " + book.getName() + " at " + index);
+                        Utils.respondOkJson(ctx, request, Integer.toString(source.getData().size()).getBytes());
+                    } else if (request.method().equals(HttpMethod.PUT)) {
+                        Book book = source.getData().get(index);
+                        String json = request.content().toString(StandardCharsets.UTF_8);
+                        Utility.log(LogCls.BOOK, "update book " + book.getName() + " at " + index + " by " + json);
+                        SourceElement neo = new Gson().fromJson(json, SourceElement.class);
+                        // I shall not use reflection to extract similar procedures with their names.
+                        if (neo.getLink() != null) {
+                            book.setSource(neo.getLink());
+                        }
+                        if (neo.getName() != null) {
+                            book.setName(neo.getName());
+                        }
+                        if (neo.getPath() != null) {
+                            book.setPath(neo.getPath());
+                        }
+                        Utils.respondOkJson(ctx, request, new Gson().toJson(book).getBytes());
+                    }
                 }
             }
         }

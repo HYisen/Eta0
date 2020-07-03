@@ -44,34 +44,14 @@ function genColumns(...name: string[]): Column<any>[] {
     });
 }
 
-function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 interface Row {
     name: string;
     path: string;
     link: string;
 }
 
-interface TableState {
-    columns: Array<Column<Row>>;
-    data: Row[];
-}
-
 export function EditorTab() {
     const service = Service.Instance;
-
-    const [state, setState] = React.useState<TableState>({
-        columns: genColumns('name', 'path', 'link'),
-        data: [
-            {
-                name: "bookName",
-                path: "bookPath",
-                link: "bookLink"
-            },
-        ],
-    });
 
     const create = async (neoRow: Row) => {
         let resp = await service.ajax('post', neoRow, 'api/resource');
@@ -105,19 +85,27 @@ export function EditorTab() {
         return oldRow.tableData.id;
     }
 
+    function extractDiff(neo: any, old: any, ...attrName: string[]): object {
+        let diff: any = {};
+        for (let name of attrName) {
+            if (neo[name] !== old[name]) {
+                diff[name] = neo[name];
+            }
+        }
+        return diff;
+    }
+
     const update = async (neoRow: Row, oldRow?: Row) => {
         // When? I don't know. The demo use it, therefore I use it.
         if (!oldRow) {
             return
         }
 
-        await sleep(500);
-        setState(prevState => {
-            const data = [...prevState.data];
-
-            data[extractIndex(oldRow)] = neoRow;
-            return {...prevState, data};
-        });
+        const diff = extractDiff(neoRow, oldRow, 'name', 'path', 'link');
+        let resp = await service.ajax('put', diff, `api/resource/${extractIndex(oldRow)}`);
+        if (!resp.ok) {
+            alert(`failed to delete ${JSON.stringify(oldRow)}`);
+        }
     };
 
     const remove = async (oldRow: Row) => {
