@@ -68,6 +68,32 @@ export function EditorTab({linkMethodNullable}: EditorTabProps) {
                 onRowUpdate: (newData, oldData) => source.update(newData, oldData),
                 onRowDelete: oldData => source.remove(oldData),
             }}
+            actions={[
+                {
+                    icon: SaveIcon,
+                    tooltip: 'Persist',
+                    isFreeAction: true,
+                    onClick: () => {
+                        window.console.log("save start");
+
+                        (async function () {
+                            await source.save();
+                        })();
+                    }
+                },
+                {
+                    icon: ReplayIcon,
+                    tooltip: 'Reload',
+                    isFreeAction: true,
+                    onClick: () => {
+                        window.console.log("load start");
+
+                        (async function () {
+                            await source.load();
+                        })();
+                    }
+                }
+            ]}
         />
     );
 

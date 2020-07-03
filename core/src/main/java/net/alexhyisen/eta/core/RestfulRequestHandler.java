@@ -100,7 +100,17 @@ public class RestfulRequestHandler extends SimpleChannelInboundHandler<FullHttpR
             }
         } else if (uri.startsWith("/resource")) {
             if (checkAuthorized(ctx, request)) {
-                if (request.method().equals(HttpMethod.GET)) {
+                if (uri.equals("/resource/file")) {
+                    if (request.method().equals(HttpMethod.GET)) {
+                        Utility.log(LogCls.BOOK, "load sources");
+                        source.load();
+                        Utils.respondOkJson(ctx, request, new byte[0]);
+                    } else if (request.method().equals(HttpMethod.PUT)) {
+                        Utility.log(LogCls.BOOK, "save sources");
+                        source.save();
+                        Utils.respondOkJson(ctx, request, Integer.toString(source.getData().size()).getBytes());
+                    }
+                } else if (request.method().equals(HttpMethod.GET)) {
                     var data = source.getData().stream().map(SourceElement::new).collect(Collectors.toList());
                     Utils.respondOkJson(ctx, request, new Gson().toJson(data).getBytes());
                 } else if (request.method().equals(HttpMethod.POST)) {

@@ -24,6 +24,21 @@ export class Source {
         return this.instance;
     }
 
+    async save() {
+        let resp = await this.service.ajax('put', null, 'api/resource/file');
+        if (!resp.ok) {
+            throw new Error("failed to save sources");
+        }
+    }
+
+    async load() {
+        let resp = await this.service.ajax('get', null, 'api/resource/file');
+        if (!resp.ok) {
+            throw new Error("failed to load sources");
+        }
+        this.modified = true;
+    }
+
     private static fillEmpty(target: any, ...attr: string[]) {
         for (let name of attr) {
             if (!target.hasOwnProperty(name) || target[name] === null) {
