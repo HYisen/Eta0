@@ -397,7 +397,7 @@ function Main() {
                                stage={stage} bookId={bookId} chapterId={chapterId} update={update} prefetch={prefetch}/>
                 </TabPanel>
                 <TabPanel value={value} index={TabClazz.Editor} dir={theme.direction}>
-                    <EditorTab link={linked ? null : link}/>
+                    <EditorTab linkMethodNullable={linked ? null : link}/>
                 </TabPanel>
             </SwipeableViews>
         </div>

@@ -17,6 +17,9 @@ import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 import {Source} from "../Source";
+import SaveIcon from '@material-ui/icons/Save';
+import ReplayIcon from '@material-ui/icons/Replay';
+
 
 const tableIcons: Icons = {
     Add: forwardRef((props, ref) => <AddBox {...props} ref={ref}/>),
@@ -45,13 +48,13 @@ function genColumns(...name: string[]): Column<any>[] {
 }
 
 export interface EditorTabProps {
-    link: (() => void) | null; // null if it is already linked therefore no need to link.
+    linkMethodNullable: (() => void) | null; // null if it is already linked therefore no need to linkMethodNullable.
 }
 
-export function EditorTab({link}: EditorTabProps) {
+export function EditorTab({linkMethodNullable}: EditorTabProps) {
     const source: Source = Source.Instance;
-    if (link) {
-        link();
+    if (linkMethodNullable) {
+        linkMethodNullable();
     }
 
     return (
