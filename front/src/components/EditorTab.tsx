@@ -85,7 +85,12 @@ export function EditorTab() {
         // which shall have the ability to get notified from front-end modification.
         window.console.log(query)
         let response = await service.ajax('get', null, 'api/resource');
-        const data: Row[] = await JSON.parse(await response.text());
+        let data: Row[] = await JSON.parse(await response.text());
+        if (query.search.length > 0) {
+            data = data.filter(row => row.name.includes(query.search)
+                || row.link.includes(query.search)
+                || row.path.includes(query.search));
+        }
         const start = query.pageSize * query.page;
         return {data: data.slice(start, start + query.pageSize), page: query.page, totalCount: data.length};
     };
