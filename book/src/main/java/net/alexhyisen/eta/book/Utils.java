@@ -16,6 +16,20 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class Utils {
+    /**
+     * stripe directory and suffix from url
+     */
+    static String basename(String url) {
+        String tail = url.substring(url.lastIndexOf('/') + 1);
+
+        int anchor = tail.indexOf('.');
+        if (anchor == -1) {
+            anchor = tail.length();
+        }
+
+        return tail.substring(0, anchor);
+    }
+
     @Nullable
     static byte[] download(String url) {
         //Utility.stamp("download 0");
