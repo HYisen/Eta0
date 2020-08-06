@@ -51,7 +51,7 @@ function ItemView(props: { data: Item[] }) {
     return (
         <Grid
             container
-            direction="column"
+            direction="column-reverse"
             justify="flex-start"
             alignItems="stretch"
             spacing={1}
