@@ -158,6 +158,12 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                 messenger.getChapter(bookId, chapterId).then(content => {
                     unstable_batchedUpdates(() => {
                         chapter.content = content;
+
+                        // uncached chapter title would have suffix " *", remove it when download is completed.
+                        if (chapter.title.endsWith(" *")) {
+                            chapter.title = chapter.title.substr(0, chapter.title.length - 2);
+                        }
+
                         setLoadingMessage('');
                     })
                 });
