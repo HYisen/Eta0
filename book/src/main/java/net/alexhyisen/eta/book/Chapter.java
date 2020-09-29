@@ -36,7 +36,7 @@ public class Chapter {
         return new String(rtn);
     }
 
-    @SuppressWarnings({"WeakerAccess", "unused"})
+    @SuppressWarnings({"WeakerAccess"})
     static void expand(Node node, int depth) {
         NodeList subs = node.getChildNodes();
 
@@ -253,8 +253,15 @@ public class Chapter {
         return code;
     }
 
+    // It's definitely a bad idea to compress the cached information into name message.
+    // But it's convenient, comparing to modify data structure in both front-end and back-end.
+    // And I'm quite confident that name is nothing but a hint message, which would not matter even if broken.
     public String getName() {
-        return name;
+        var composited = name;
+        if (!cached) {
+            composited += " *";
+        }
+        return composited;
     }
 
     @SuppressWarnings("WeakerAccess")
