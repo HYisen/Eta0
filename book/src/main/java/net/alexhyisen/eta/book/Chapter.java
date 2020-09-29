@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -253,12 +254,16 @@ public class Chapter {
         return code;
     }
 
-    // It's definitely a bad idea to compress the cached information into name message.
-    // But it's convenient, comparing to modify data structure in both front-end and back-end.
-    // And I'm quite confident that name is nothing but a hint message, which would not matter even if broken.
     public String getName() {
+        return name;
+    }
+
+    /**
+     * @return name with potential suffix that indicate its cached status
+     */
+    public String getComposedName() {
         var composited = name;
-        if (!cached) {
+        if (!cached.get()) {
             composited += " *";
         }
         return composited;

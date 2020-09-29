@@ -52,7 +52,7 @@ public class PageController {
     public void refresh() {
         codeLabel.setText(String.valueOf(chapter.getCode()));
         bookLabel.setText(book.getName());
-        chapterLabel.setText(chapter.getName());
+        chapterLabel.setText(chapter.getComposedName());
         armButton();
 
         dataTextArea.setText(Arrays.stream(chapter.getData())

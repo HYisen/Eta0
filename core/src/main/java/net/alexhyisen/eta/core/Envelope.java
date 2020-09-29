@@ -44,7 +44,7 @@ public class Envelope {
             orig.open();
         }
         this.content = orig.getChapters().stream()
-                .map(Chapter::getName)
+                .map(Chapter::getComposedName)
                 .collect(Collectors.toList()).toArray(new String[orig.getChapters().size()]);
     }
 

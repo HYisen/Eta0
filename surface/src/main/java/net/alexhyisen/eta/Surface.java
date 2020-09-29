@@ -125,7 +125,7 @@ public class Surface {
     }
 
     private static void printChapter(Book book, Chapter chapter) {
-        System.out.printf("《%s》 %s\n", book.getName(), chapter.getName());
+        System.out.printf("《%s》 %s\n", book.getName(), chapter.getComposedName());
         chapter.download();
         Arrays.stream(chapter.getData()).forEach(v -> System.out.println("    " + v));
     }
