@@ -240,14 +240,14 @@ public class Chapter {
     private String name;
     private String[] data;
     private String path;
-    private boolean cached;
+    private AtomicBoolean cached;
 
     public Chapter(String source, int code, String name, String path) {
         this.source = source;
         this.code = code;
         this.name = name;
         this.path = path;
-        cached = Files.exists(Paths.get(path, String.valueOf(code)));
+        cached = new AtomicBoolean(Files.exists(Paths.get(path, String.valueOf(code))));
     }
 
     public int getCode() {
@@ -316,15 +316,23 @@ public class Chapter {
         return data;
     }
 
+    private byte[] passAndSave(byte[] bytes) {
+        // Multiple redundant download is acceptable, while multiple persistent action is not welcomed.
+        if (cached.compareAndSet(false, true)) {
+            write();
+        }
+        return bytes;
+    }
+
     public void download() {
-        if (!cached) {
-            raw = CompletableFuture.supplyAsync(() -> Utils.download(source));
+        if (!isCached()) {
+            raw = CompletableFuture.supplyAsync(() -> Utils.download(source)).thenApply(this::passAndSave);
         }
     }
 
     public void download(Executor exec) {
-        if (!cached) {
-            raw = CompletableFuture.supplyAsync(() -> Utils.download(source), exec);
+        if (!isCached()) {
+            raw = CompletableFuture.supplyAsync(() -> Utils.download(source), exec).thenApply(this::passAndSave);
         }
     }
 
@@ -332,7 +340,7 @@ public class Chapter {
     //which also implies that it has been mailed to user.
     @SuppressWarnings("WeakerAccess")
     public boolean isCached() {
-        return cached;
+        return cached.get();
     }
 
     //loaded only indicate whether you can get the data offline rather than online,
@@ -355,7 +363,7 @@ public class Chapter {
                 Files.write(Paths.get(getPath(), "index"),
                         (getCode() + "," + getName() + "\n").getBytes(),
                         StandardOpenOption.APPEND);
-                cached = true;
+                cached.set(true);
                 return true;
             }
         } catch (IOException e) {
