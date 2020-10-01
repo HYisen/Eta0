@@ -57,7 +57,7 @@ public class Tester {
         Arrays.stream(one.getData()).forEach(System.out::println);
         System.out.println("end of content");
         System.out.println("write to " + one.getPath());
-        one.write();
+        one.writeIfUncached();
         System.out.println("END Chapter TEST");
 
         try {

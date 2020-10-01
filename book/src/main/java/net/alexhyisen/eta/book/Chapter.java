@@ -1,6 +1,7 @@
 package net.alexhyisen.eta.book;
 
 import net.alexhyisen.Utility;
+import net.alexhyisen.log.LogCls;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -37,37 +38,7 @@ public class Chapter {
         return new String(rtn);
     }
 
-    @SuppressWarnings({"WeakerAccess"})
-    static void expand(Node node, int depth) {
-        NodeList subs = node.getChildNodes();
-
-        String identity = node.getNodeName();
-        NamedNodeMap attr = node.getAttributes();
-        if (attr != null) {
-            Node id = attr.getNamedItem("id");
-            if (id != null) {
-                identity += " id#" + id.getNodeValue();
-            }
-            id = attr.getNamedItem("class");
-            if (id != null) {
-                identity += " class#" + id.getNodeValue();
-            }
-        }
-        switch (subs.getLength()) {
-            case 0:
-                System.out.println(getIndent(depth) + identity + ":" + node.getNodeValue());
-                break;
-            case 1:
-                System.out.println(getIndent(depth) + identity + "=" + subs.item(0).getNodeValue());
-                break;
-            default:
-                System.out.println(getIndent(depth) + identity + "->");
-                for (int k = 0; k != subs.getLength(); ++k) {
-                    expand(subs.item(k), depth + 1);
-                }
-                break;
-        }
-    }
+    private AtomicBoolean cached; // whether data has been persisted into disk
 
     //a whole deepest search
     //for parallel optimization, I can not use the strategy that searches one by one.
@@ -240,7 +211,7 @@ public class Chapter {
     private String name;
     private String[] data;
     private String path;
-    private AtomicBoolean cached;
+    private AtomicBoolean hasStartWrite = new AtomicBoolean(false);
 
     public Chapter(String source, int code, String name, String path) {
         this.source = source;
@@ -272,6 +243,38 @@ public class Chapter {
     @SuppressWarnings("WeakerAccess")
     public Future<byte[]> getRaw() {
         return raw;
+    }
+
+    @SuppressWarnings({"WeakerAccess", "unused"})
+    static void expand(Node node, int depth) {
+        NodeList subs = node.getChildNodes();
+
+        String identity = node.getNodeName();
+        NamedNodeMap attr = node.getAttributes();
+        if (attr != null) {
+            Node id = attr.getNamedItem("id");
+            if (id != null) {
+                identity += " id#" + id.getNodeValue();
+            }
+            id = attr.getNamedItem("class");
+            if (id != null) {
+                identity += " class#" + id.getNodeValue();
+            }
+        }
+        switch (subs.getLength()) {
+            case 0:
+                System.out.println(getIndent(depth) + identity + ":" + node.getNodeValue());
+                break;
+            case 1:
+                System.out.println(getIndent(depth) + identity + "=" + subs.item(0).getNodeValue());
+                break;
+            default:
+                System.out.println(getIndent(depth) + identity + "->");
+                for (int k = 0; k != subs.getLength(); ++k) {
+                    expand(subs.item(k), depth + 1);
+                }
+                break;
+        }
     }
 
     public String[] getData() {
@@ -313,26 +316,29 @@ public class Chapter {
                 }
             }
         }
-        return data;
-    }
 
-    private byte[] passAndSave(byte[] bytes) {
-        // Multiple redundant download is acceptable, while multiple persistent action is not welcomed.
-        if (cached.compareAndSet(false, true)) {
-            write();
+        if (!isCached() && hasStartWrite.compareAndSet(false, true)) {
+            try {
+                write();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Utility.log(LogCls.BOOK, String.format("failed to save data on chapter %s, but continue.", getName()));
+            }
+            cached.set(true);
         }
-        return bytes;
+
+        return data;
     }
 
     public void download() {
         if (!isCached()) {
-            raw = CompletableFuture.supplyAsync(() -> Utils.download(source)).thenApply(this::passAndSave);
+            raw = CompletableFuture.supplyAsync(() -> Utils.download(source));
         }
     }
 
     public void download(Executor exec) {
         if (!isCached()) {
-            raw = CompletableFuture.supplyAsync(() -> Utils.download(source), exec).thenApply(this::passAndSave);
+            raw = CompletableFuture.supplyAsync(() -> Utils.download(source), exec);
         }
     }
 
@@ -354,16 +360,15 @@ public class Chapter {
         return path;
     }
 
-    public boolean write() {
+    /**
+     * Try to persistent data. Give up if it's already cached.
+     *
+     * @return whether the operation is done
+     */
+    public boolean writeIfUncached() {
         try {
             if (!isCached()) {
-                Files.write(Paths.get(getPath(), String.valueOf(getCode())), Arrays.asList(getData()), StandardOpenOption.CREATE_NEW);
-                Utility.log("save " + getCode() + " " + getName());
-                //To be honest, I don't know the meaning of the index file.
-                Files.write(Paths.get(getPath(), "index"),
-                        (getCode() + "," + getName() + "\n").getBytes(),
-                        StandardOpenOption.APPEND);
-                cached.set(true);
+                write();
                 return true;
             }
         } catch (IOException e) {
@@ -371,6 +376,23 @@ public class Chapter {
         }
         Utility.log("skip " + getCode() + " " + getName());
         return false;
+    }
+
+    /**
+     * Persistent data in memory to disk.
+     * The operation on index file is designed to work at the beginning, but remain unused until present.
+     *
+     * @throws IOException if failed to save/append information to disk
+     */
+    private void write() throws IOException {
+        var path = Paths.get(getPath(), String.valueOf(getCode()));
+        var lines = Arrays.asList(getData());
+        Files.write(path, lines, StandardOpenOption.CREATE_NEW);
+        Utility.log("save " + getCode() + " " + getName());
+        //To be honest, I don't know the meaning of the index file.
+        Files.write(Paths.get(getPath(), "index"),
+                (getCode() + "," + getName() + "\n").getBytes(),
+                StandardOpenOption.APPEND);
     }
 
     static Optional<Map.Entry<Node, Long>> searchRichestNode(Document doc, String tag) {

@@ -109,7 +109,7 @@ public class Book {
     }
 
     public List<Chapter> save() {
-        return getChapters().stream().filter(Chapter::write).collect(Collectors.toList());
+        return getChapters().stream().filter(Chapter::writeIfUncached).collect(Collectors.toList());
     }
 
     public void archive() {
