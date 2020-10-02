@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.zip.DeflaterInputStream;
+import java.util.zip.GZIPInputStream;
 
 public class Utils {
     /**
@@ -30,6 +32,21 @@ public class Utils {
         return tail.substring(0, anchor);
     }
 
+    private static InputStream depress(String encodingNullable, InputStream compressed) throws IOException {
+        if (encodingNullable == null) {
+            return compressed;
+        }
+
+        switch (encodingNullable) {
+            case "gzip":
+                return new GZIPInputStream(compressed);
+            case "deflate":
+                return new DeflaterInputStream(compressed);
+            default:
+                throw new IOException("unsupported compression encoding " + encodingNullable);
+        }
+    }
+
     @Nullable
     static byte[] download(String url) {
         //Utility.stamp("download 0");
@@ -38,7 +55,9 @@ public class Utils {
         try {
             URLConnection connection = new URL(url).openConnection();
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0");
+            connection.setRequestProperty("Accept-Encoding", "gzip, deflate"); // Brotli utils is not easy to fetch
             is = connection.getInputStream();
+            is = depress(connection.getContentEncoding(), is);
             byte[] byteChunk = new byte[4096]; // Or whatever size you want to read in at a time.
             int n;
 
