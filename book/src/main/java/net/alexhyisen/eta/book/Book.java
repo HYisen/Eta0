@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -117,10 +119,7 @@ public class Book {
             writer.write("《" + this.getName() + "》\n\n\n\n");
             getChapters()
                     .stream()
-                    .map(v -> "\n\n\n" + v.getName() + "\n\n" +
-                            Arrays
-                                    .stream(v.getData())
-                                    .reduce((a, b) -> a + "\n" + b))
+                    .map(Book::genChapterFrame)
                     .forEach(v -> {
                         try {
                             writer.write(v);
@@ -131,5 +130,9 @@ public class Book {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String build() {
+        return getChapters().stream().map(Book::genChapterFrame).collect(Collectors.joining());
     }
 }
