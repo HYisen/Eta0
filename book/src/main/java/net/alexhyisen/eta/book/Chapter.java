@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -339,6 +340,16 @@ public class Chapter {
     public void download(Executor exec) {
         if (!isCached()) {
             raw = CompletableFuture.supplyAsync(() -> Utils.download(source), exec);
+        }
+    }
+
+    public void download(Executor exec, LongAdder adder) {
+        if (!isCached()) {
+            raw = CompletableFuture.supplyAsync(() -> {
+                byte[] download = Utils.download(source);
+                adder.increment();
+                return download;
+            }, exec);
         }
     }
 
