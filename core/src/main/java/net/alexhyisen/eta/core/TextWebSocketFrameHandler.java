@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -133,6 +134,25 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                         ctx.writeAndFlush(new TextWebSocketFrame("Refreshing of " + book.getName() + " completed"));
                         Utility.log("book " + book.getName() + " refreshed ");
                     }
+                    break;
+                case "download":
+                    var book = data.get(Integer.parseInt(arg));
+                    if (!book.isOpened()) {
+                        book.open();
+                    }
+                    var adder = new LongAdder();
+                    ctx.writeAndFlush(new TextWebSocketFrame("total " + book.getChapters().size()));
+                    var ses = Executors.newSingleThreadScheduledExecutor();
+                    ses.scheduleWithFixedDelay(
+                            () -> {
+                                long cnt = adder.sum();
+                                ctx.writeAndFlush(new TextWebSocketFrame("progress " + cnt));
+                                if (cnt == book.getChapters().size()) {
+                                    ses.shutdown();
+                                }
+                            },
+                            0, 2, TimeUnit.SECONDS);
+                    book.read(10, adder);
                     break;
                 case "Start-Task":
                     manageTaskArg(ctx, arg, jobs);

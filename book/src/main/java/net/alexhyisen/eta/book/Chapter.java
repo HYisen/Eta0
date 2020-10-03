@@ -350,6 +350,8 @@ public class Chapter {
                 adder.increment();
                 return download;
             }, exec);
+        } else {
+            adder.increment();
         }
     }
 
