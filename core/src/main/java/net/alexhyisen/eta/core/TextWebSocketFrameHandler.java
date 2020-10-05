@@ -152,7 +152,7 @@ class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocke
                                 }
                             },
                             0, 2, TimeUnit.SECONDS);
-                    book.read(10, adder);
+                    book.read(5, adder);
                     break;
                 case "Start-Task":
                     manageTaskArg(ctx, arg, jobs);
