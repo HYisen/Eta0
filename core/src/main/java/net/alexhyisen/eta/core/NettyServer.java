@@ -114,6 +114,7 @@ class NettyServer implements Closeable {
                                 .addLast(new HttpServerCodec())
                                 .addLast(new ChunkedWriteHandler())
                                 .addLast(new HttpObjectAggregator(65536))
+                                .addLast(new DownloadRequestHandler(data))
                                 .addLast(new RestfulRequestHandler("api",
                                         Config.getFromDefault("adminUsername"),
                                         Config.getFromDefault("adminPassword"),
