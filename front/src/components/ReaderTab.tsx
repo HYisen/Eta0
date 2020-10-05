@@ -7,7 +7,8 @@ import Memory from "../Memory";
 export enum Stage {
     Shelf,
     Book,
-    Chapter
+    Chapter,
+    Download,
 }
 
 export interface Book {
@@ -32,6 +33,7 @@ export interface ReaderTabProps {
 
 export default function ReaderTab({messenger, data, stage, bookId, chapterId, update, prefetch}: ReaderTabProps) {
     const [loadingMessage, setLoadingMessage] = useState('');
+    const [downloadStatus, setDownloadStatus] = useState('');
 
     const memory = Memory.Instance;
 
@@ -148,6 +150,21 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                     chapterCards.reverse();
                 }
                 cards.push(...chapterCards);
+
+                cards.push(
+                    <Grid item key={++cnt}>
+                        <Card>
+                            <CardActionArea onClick={
+                                () => {
+                                    update(Stage.Download, bookId, chapterId);
+                                }
+                            }>
+                                <CardContent style={{textAlign: "center"}}>
+                                    Download
+                                </CardContent>
+                            </CardActionArea>
+                        </Card>
+                    </Grid>);
             }
             break;
         case Stage.Chapter:
@@ -216,6 +233,41 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                         </Grid>);
                 }
             }
+            break;
+        case Stage.Download:
+            if (downloadStatus.length === 0) {
+                messenger.getDownloadLink(bookId, setDownloadStatus, setDownloadStatus);
+            } else {
+                if (downloadStatus.startsWith("finished")) {
+                    cards.push(<Grid item key={++cnt}>
+                        <Card><CardContent style={{textAlign: "center"}}>
+                            {downloadStatus}
+                        </CardContent></Card>
+
+                    </Grid>);
+                } else {
+                    cards.push(<Grid item key={++cnt}>
+                        <Card>
+                            <CardContent style={{textAlign: "center"}}>
+                                <a download="book.txt" href={downloadStatus}>download</a>
+                            </CardContent>
+                        </Card>
+
+                    </Grid>);
+                }
+            }
+            cards.push(<Grid item key={++cnt}>
+                <Card>
+                    <CardActionArea onClick={() => unstable_batchedUpdates(() => {
+                        update(Stage.Book, bookId, chapterId);
+                        setDownloadStatus('');
+                    })}>
+                        <CardContent style={{textAlign: "center"}}>
+                            Back
+                        </CardContent>
+                    </CardActionArea>
+                </Card>
+            </Grid>);
             break;
         default:
             throw new Error(`unknown stage ${stage}`);
