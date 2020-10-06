@@ -56,7 +56,29 @@ export class HttpMessenger implements Messenger {
     isBad = () => false;
 
     getDownloadLink(bookId: number, printProgressFunc: (msg: string) => void, reportLinkFunc: (link: string) => void) {
-        throw new Error("unsupported action")
+        const nThreads = 2;
+        const link = `${this.addr}/whole/${bookId}`;
+        const access = this.accessWhole;
+        let total = 0;
+        const handler = () => {
+            access('GET', `${bookId}/progress`).then(progress => {
+                if (progress < total) {
+                    printProgressFunc(`finished ${progress}/${total}`);
+                    setTimeout(handler, 2000);
+                } else {
+                    reportLinkFunc(link);
+                }
+            })
+        }
+        access('POST', `${bookId}?concurrency=${nThreads}`).then(num => {
+            total = num;
+            handler();
+        })
+    }
+
+    private accessWhole = async (method: string, path: string) => {
+        const num: number = Number.parseInt(await ajax(method, null, `${this.addr}/whole/${path}`));
+        return num;
     }
 }
 
