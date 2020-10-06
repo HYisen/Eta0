@@ -9,6 +9,11 @@ import io.netty.handler.codec.http.*;
 import net.alexhyisen.Utility;
 import net.alexhyisen.log.LogCls;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 class Utils {
     private static final String ALLOW_HEADERS = String.join(",",
             HttpHeaderNames.CONTENT_TYPE,
@@ -78,5 +83,15 @@ class Utils {
         setupHeaders(resp.headers(), "text/plain", keepAlive, 0, origin);
         sendResponse(keepAlive, resp, ctx, null);
         Utility.log(LogCls.AUTH, String.format("guarantee CORS %s -> %s", ctx.channel().remoteAddress(), origin));
+    }
+
+    static Map<String, String> extractParamFromUrlTail(String questionMarkStartedTail) {
+        if (!questionMarkStartedTail.startsWith("?")) {
+            return Collections.emptyMap();
+        }
+        return Arrays
+                .stream(questionMarkStartedTail.substring(1).split("&"))
+                .map(v -> v.split("="))
+                .collect(Collectors.toMap(v -> v[0], v -> v[1]));
     }
 }

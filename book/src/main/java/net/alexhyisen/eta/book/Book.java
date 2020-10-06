@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -98,18 +100,37 @@ public class Book {
                 .collect(Collectors.toList());
     }
 
-    public void read(int nThreads) {
-        ExecutorService exec = Executors.newFixedThreadPool(nThreads);
+    private static String genChapterFrame(Chapter chapter) {
+        return "\n\n\n" + chapter.getName() + "\n\n" +
+                Arrays
+                        .stream(chapter.getData())
+                        .reduce("", (a, b) -> a + "\n" + b);
+    }
+
+    private void read(ExecutorService exec, Consumer<Chapter> downloadFunc) {
         if (index == null) {
             open();
         }
-        chapters.forEach(v -> v.download(exec));
+        chapters.forEach(downloadFunc);
         exec.shutdown();
         cached = true;
     }
 
+    public void read(int nThreads) {
+        ExecutorService exec = Executors.newFixedThreadPool(nThreads);
+        read(exec, v -> v.download(exec));
+    }
+
     public List<Chapter> save() {
         return getChapters().stream().filter(Chapter::writeIfUncached).collect(Collectors.toList());
+    }
+
+    public void read(int nThreads, LongAdder adder) {
+        // I would use a channel in golang to transmit the message.
+        // But BlockingQueue in Java might not be sufficient and therefore elegant enough.
+
+        ExecutorService exec = Executors.newFixedThreadPool(nThreads);
+        read(exec, v -> v.download(exec, adder));
     }
 
     public void archive() {
@@ -117,10 +138,7 @@ public class Book {
             writer.write("《" + this.getName() + "》\n\n\n\n");
             getChapters()
                     .stream()
-                    .map(v -> "\n\n\n" + v.getName() + "\n\n" +
-                            Arrays
-                                    .stream(v.getData())
-                                    .reduce((a, b) -> a + "\n" + b))
+                    .map(Book::genChapterFrame)
                     .forEach(v -> {
                         try {
                             writer.write(v);
@@ -131,5 +149,9 @@ public class Book {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String build() {
+        return getChapters().stream().map(Book::genChapterFrame).collect(Collectors.joining());
     }
 }

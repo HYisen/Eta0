@@ -6,6 +6,7 @@ export interface Messenger {
     getBook: (bookId: number) => Promise<string[]>
     getChapter: (bookId: number, chapterId: number) => Promise<string[]>
     isBad: () => boolean
+    getDownloadLink: (bookId: number, printProgressFunc: (msg: string) => void, reportLinkFunc: (link: string) => void) => void
 }
 
 interface Envelop {
@@ -53,6 +54,32 @@ export class HttpMessenger implements Messenger {
         return this.get(``);
     };
     isBad = () => false;
+
+    getDownloadLink(bookId: number, printProgressFunc: (msg: string) => void, reportLinkFunc: (link: string) => void) {
+        const nThreads = 2;
+        const link = `${this.addr}/whole/${bookId}`;
+        const access = this.accessWhole;
+        let total = 0;
+        const handler = () => {
+            access('GET', `${bookId}/progress`).then(progress => {
+                if (progress < total) {
+                    printProgressFunc(`finished ${progress}/${total}`);
+                    setTimeout(handler, 2000);
+                } else {
+                    reportLinkFunc(link);
+                }
+            })
+        }
+        access('POST', `${bookId}?concurrency=${nThreads}`).then(num => {
+            total = num;
+            handler();
+        })
+    }
+
+    private accessWhole = async (method: string, path: string) => {
+        const num: number = Number.parseInt(await ajax(method, null, `${this.addr}/whole/${path}`));
+        return num;
+    }
 }
 
 export class WebSocketMessenger implements Messenger {
@@ -93,4 +120,30 @@ export class WebSocketMessenger implements Messenger {
         return this.access(`ls .`);
     };
     isBad = () => this.service.bad;
+
+    getDownloadLink(bookId: number, printProgressFunc: (msg: string) => void, reportLinkFunc: (link: string) => void) {
+        let total: number;
+        let progress: number;
+        const dealProgress = (ev: MessageEvent) => {
+            const msg: string = ev.data;
+            const limbs = msg.split(" ");
+            switch (limbs[0]) {
+                case "total":
+                    total = Number.parseInt(limbs[1]);
+                    break;
+                case "progress":
+                    progress = Number.parseInt(limbs[1]);
+                    printProgressFunc(`finished ${progress}/${total}`)
+                    if (progress === total) {
+                        this.service.removeEventListener('message', dealProgress);
+                        reportLinkFunc(`${this.service.addr}/whole/${bookId}`);
+                    }
+                    break;
+                default:
+                    throw new Error(`unexpected message ${JSON.stringify(limbs)}`);
+            }
+        };
+        this.service.addEventListener('message', dealProgress)
+        this.service.send(`download ${bookId}`);
+    }
 }
