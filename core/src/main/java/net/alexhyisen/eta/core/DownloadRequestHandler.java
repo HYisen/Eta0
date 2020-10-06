@@ -98,7 +98,7 @@ public class DownloadRequestHandler extends SimpleChannelInboundHandler<FullHttp
             return;
         }
         if (request.method().equals(HttpMethod.GET)) {
-            if (book.getChapters().stream().allMatch(Predicate.not(Chapter::isCached))) {
+            if (book.getChapters().stream().anyMatch(Predicate.not(Chapter::isLoaded))) {
                 Utils.respond(ctx, request, HttpResponseStatus.FORBIDDEN,
                         "text/plain", String.format("cached status unmeet on %s", book.getName()).getBytes());
                 return;
