@@ -58,6 +58,20 @@ public class DownloadRequestHandler extends SimpleChannelInboundHandler<FullHttp
             return;
         }
 
+        if (uri.endsWith("/progress") && request.method().equals(HttpMethod.GET)) {
+            String front = uri.substring(0, uri.indexOf("/progress"));
+            String[] limbs = front.split("/");
+            int bookIndex = Integer.parseInt(limbs[limbs.length - 1]);
+            LongAdder adder = progresses.get(bookIndex);
+            if (adder == null) {
+                Utils.respond(ctx, request, HttpResponseStatus.NOT_FOUND, "text/plain", "invalid id".getBytes());
+                return;
+            }
+            byte[] payload = Long.toString(adder.sum()).getBytes();
+            Utils.respond(ctx, request, HttpResponseStatus.OK, "text/plain", payload);
+            return;
+        }
+
         int endIndex = uri.indexOf('?');
         if (endIndex == -1) {
             endIndex = uri.length();
