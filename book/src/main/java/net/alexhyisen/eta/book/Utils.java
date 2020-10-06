@@ -81,6 +81,8 @@ public class Utils {
         if (data.length < 1000) {
             Utility.log(LogCls.BOOK, "data is suspiciously small from " + url);
         }
+
+        Utility.log(LogCls.BOOK, "downloaded from " + url);
         return data;
     }
 

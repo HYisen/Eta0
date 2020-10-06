@@ -13,13 +13,16 @@ import net.alexhyisen.log.LogCls;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Predicate;
 
-import static net.alexhyisen.eta.core.Utils.sendResponse;
-import static net.alexhyisen.eta.core.Utils.setupHeaders;
+import static net.alexhyisen.eta.core.Utils.*;
 
 public class DownloadRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private final List<Book> data;
+    private static final Map<Integer, LongAdder> progresses = new ConcurrentHashMap<>();
 
     public DownloadRequestHandler(List<Book> data) {
         this.data = data;
@@ -44,16 +47,40 @@ public class DownloadRequestHandler extends SimpleChannelInboundHandler<FullHttp
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
+        if (request.method().equals(HttpMethod.OPTIONS)) {
+            Utils.guaranteeCorsPreflight(ctx, request);
+            return;
+        }
+
         String uri = request.uri();
         if (!uri.startsWith("/whole/")) {
             ctx.fireChannelRead(request.retain());
             return;
         }
 
-        var book = data.get(Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1)));
+        int endIndex = uri.indexOf('?');
+        if (endIndex == -1) {
+            endIndex = uri.length();
+        }
+        int bookIndex = Integer.parseInt(uri.substring(uri.lastIndexOf("/") + 1, endIndex));
+        var book = data.get(bookIndex);
 
-        if (request.method().equals(HttpMethod.OPTIONS)) {
-            Utils.guaranteeCorsPreflight(ctx, request);
+        if (request.method().equals(HttpMethod.POST)) {
+            Map<String, String> params = extractParamFromUrlTail(uri.substring(endIndex));
+            int nThreads = Integer.parseInt(params.getOrDefault("concurrency", "5"));
+
+            if (!book.isOpened()) {
+                book.open();
+            }
+
+            var adder = new LongAdder();
+            progresses.put(bookIndex, adder);
+            book.read(nThreads, adder);
+            Utility.log(LogCls.BOOK, String.format("reading book %d with parallelism %d", bookIndex, nThreads));
+
+            byte[] payload = Integer.toString(book.getChapters().size()).getBytes();
+            Utils.respond(ctx, request, HttpResponseStatus.CREATED, "text/plain", payload);
+
             return;
         }
         if (request.method().equals(HttpMethod.GET)) {
