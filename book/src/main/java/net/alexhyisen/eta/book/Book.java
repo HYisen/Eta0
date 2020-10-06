@@ -104,7 +104,7 @@ public class Book {
         return "\n\n\n" + chapter.getName() + "\n\n" +
                 Arrays
                         .stream(chapter.getData())
-                        .reduce((a, b) -> a + "\n" + b);
+                        .reduce("", (a, b) -> a + "\n" + b);
     }
 
     private void read(ExecutorService exec, Consumer<Chapter> downloadFunc) {
