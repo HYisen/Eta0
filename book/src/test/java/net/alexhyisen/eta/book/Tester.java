@@ -1,6 +1,8 @@
 package net.alexhyisen.eta.book;
 
 import net.alexhyisen.Utility;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -70,6 +72,20 @@ public class Tester {
     }
 
     void testIndex() {
+        System.out.println("GO Index TEST");
+        String path = "D:\\Code\\test\\Tester\\";
+        Index one = new Index("http://www.biqudao.com/bqge1081/", path);
+        one.getData().entrySet().stream()
+                .map(entry -> "code " + entry.getKey() +
+                        " -> " + entry.getValue().getText() +
+                        " at " + entry.getValue().getHref())
+                .forEach(System.out::println);
+        System.out.println("END Index TEST");
+    }
+
+    @Test
+    @Ignore
+    public void parseIndexWhoseChapterNameContainsQuote() {
         System.out.println("GO Index TEST");
         String path = "D:\\Code\\test\\Tester\\";
         Index one = new Index("http://www.biqudao.com/bqge1081/", path);
@@ -264,7 +280,9 @@ public class Tester {
 
         t.resume("parse");
         try {
-            sp.parse(new InputSource(new ByteArrayInputStream(xml)), new Index.ddReader(links));
+            Index.ddReader reader = new Index.ddReader();
+            sp.parse(new InputSource(new ByteArrayInputStream(xml)), reader);
+            links.addAll(reader.getData());
         } catch (SAXException | IOException e) {
             e.printStackTrace();
         }
