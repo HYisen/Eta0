@@ -162,7 +162,7 @@ public class Index {
 //            System.out.println(isChapterLink(link) + "->" + link);
             if (isValid && Objects.equals(name, "a") && isChapterLink(link)) {
                 String content = new String(ch, start, length);
-                buffer.computeIfAbsent(link, StringBuilder::new).append(content);
+                buffer.computeIfAbsent(link, v -> new StringBuilder()).append(content);
 //                System.out.printf("%s += %s\n", link, content);
             }
         }
