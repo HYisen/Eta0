@@ -49,7 +49,7 @@ public class Task {
     }
 
     private String genUrl(long page) {
-        var rtn = String.format("https://search.smzdm.com/?c=home&s=%s&v=b", key);
+        var rtn = String.format("https://search.smzdm.com/?c=home&s=%s&order=time&v=b", key);
         if (minPrize != 0 || maxPrize != 0) {
             rtn += "&min_price=" + (minPrize == 0 ? "" : String.valueOf(minPrize));
             rtn += "&max_price=" + (maxPrize == 0 ? "" : String.valueOf(maxPrize));
