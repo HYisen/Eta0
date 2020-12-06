@@ -17,6 +17,11 @@ public class Hyperlink {
         return text;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Hyperlink[%s@%s]", text, href);
+    }
+
     String getHref() {
         return href;
     }

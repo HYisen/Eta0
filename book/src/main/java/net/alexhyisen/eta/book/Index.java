@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created by Alex on 2017/1/26.
@@ -51,18 +52,19 @@ public class Index {
     }
 
     static List<Hyperlink> parse(byte[] source) {
-        List<Hyperlink> data = new ArrayList<>();
+        List<Hyperlink> data;
         try {
             SAXParserFactory spf = SAXParserFactory.newInstance();
             spf.setNamespaceAware(true);
             SAXParser saxParser = spf.newSAXParser();
             //Utility.log("parse alpha");
-            saxParser.parse(new InputSource(new ByteArrayInputStream(source)), new ddReader(data));
+            ddReader reader = new ddReader();
+            saxParser.parse(new InputSource(new ByteArrayInputStream(source)), reader);
+            data = new ArrayList<>(reader.getData());
             //Utility.log("parse omega");
         } catch (IOException | SAXException | ParserConfigurationException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
-
         }
 //        data.forEach(v -> System.out.println(v.getText() + " -> " + v.getHref()));
         return data;
@@ -117,14 +119,10 @@ public class Index {
         String name = null;
         String link = null;
         boolean isValid = false;
-        List<Hyperlink> data;
 
         //Those names come from the structure of the raw XML data.
 
-
-        ddReader(List<Hyperlink> data) {
-            this.data = data;
-        }
+        private final Map<String, StringBuilder> buffer = new HashMap<>();
 
         private static final Pattern pNumStr = Pattern.compile("\\d+");
 
@@ -164,8 +162,8 @@ public class Index {
 //            System.out.println(isChapterLink(link) + "->" + link);
             if (isValid && Objects.equals(name, "a") && isChapterLink(link)) {
                 String content = new String(ch, start, length);
-                data.add(new Hyperlink(content, link));
-//                System.out.println(content + "=" + link);
+                buffer.computeIfAbsent(link, StringBuilder::new).append(content);
+//                System.out.printf("%s += %s\n", link, content);
             }
         }
 
@@ -197,7 +195,12 @@ public class Index {
         }
 
         public List<Hyperlink> getData() {
-            return data;
+            return buffer
+                    .entrySet()
+                    .stream()
+                    .map(e -> new Hyperlink(e.getValue().toString(), e.getKey()))
+//                    .peek(System.out::println)
+                    .collect(Collectors.toList());
         }
     }
 
