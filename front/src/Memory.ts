@@ -10,6 +10,7 @@ export default class Memory {
     dedicate: boolean;
     reverse: boolean;
     prefetch: boolean;
+    allowSwipe: boolean;
     lastBookName: string;
     lastChapterId: any;
     username: string;
@@ -17,13 +18,14 @@ export default class Memory {
 
 
     constructor(host: string, port: number, mode: Mode, dedicate: boolean, reverse: boolean, prefetch: boolean,
-                lastBookName: string, lastChapterId: any, username: string, password: string) {
+                allowSwipe: boolean, lastBookName: string, lastChapterId: any, username: string, password: string) {
         this.host = host;
         this.port = port;
         this.mode = mode;
         this.dedicate = dedicate;
         this.reverse = reverse;
         this.prefetch = prefetch;
+        this.allowSwipe = allowSwipe;
         this.lastBookName = lastBookName;
         this.lastChapterId = lastChapterId;
         this.username = username;
@@ -43,7 +45,7 @@ export default class Memory {
     }
 
     private static genNormal() {
-        return new Memory('localhost', 8964, Mode.HTTP, true, true, true, '', {}, '', '');
+        return new Memory('localhost', 8964, Mode.HTTP, true, true, true, true, '', {}, '', '');
     }
 
     private static load() {

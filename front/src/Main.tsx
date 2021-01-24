@@ -71,6 +71,7 @@ function Main() {
     const [dedicate, setDedicate] = useState(memory.dedicate);
     const [reverse, setReverse] = useState(memory.reverse);
     const [prefetch, setPrefetch] = useState(memory.prefetch);
+    const [allowSwipe, setAllowSwipe] = useState(memory.allowSwipe);
 
     const [linked, setLinked] = useState(false);
     const [linking, setLinking] = useState(false);
@@ -226,6 +227,7 @@ function Main() {
                 axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
                 index={value}
                 onChangeIndex={(index) => setValue(index)}
+                disabled={!allowSwipe}
             >
                 <TabPanel value={value} index={TabClazz.Config} dir={theme.direction}>
                     <Grid container className={classes.root} spacing={4}>
@@ -280,6 +282,7 @@ function Main() {
                         {genConfigSwitchGridItem('dedicate', dedicate, setDedicate, 100)}
                         {genConfigSwitchGridItem('reverse', reverse, setReverse, 100)}
                         {genConfigSwitchGridItem('prefetch', prefetch, setPrefetch, 100)}
+                        {genConfigSwitchGridItem('canSwipe', allowSwipe, setAllowSwipe, 100)}
                         <Grid item>
                             <Button className={classes.button}
                                     style={{width: 160}}
