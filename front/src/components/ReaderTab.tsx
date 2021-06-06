@@ -49,6 +49,21 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
 
     let cards: JSX.Element[] = [];
     let cnt: number = 0;
+
+    function pushBackToShelfCard() {
+        cards.push(
+            <Grid item key={++cnt}>
+                <Card>
+                    <CardActionArea onClick={() => update(Stage.Shelf, bookId, chapterId)}>
+                        <CardContent style={{textAlign: "center"}}>
+                            {`Back to Shelf`}
+                        </CardContent>
+                    </CardActionArea>
+                </Card>
+            </Grid>
+        );
+    }
+
     switch (stage) {
         case Stage.Shelf:
             if (data.current === null) {
@@ -101,17 +116,7 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                     setLoadingMessage('');
                 });
             } else {
-                cards.push(
-                    <Grid item key={++cnt}>
-                        <Card>
-                            <CardActionArea onClick={() => update(Stage.Shelf, bookId, chapterId)}>
-                                <CardContent style={{textAlign: "center"}}>
-                                    {`Back to Shelf`}
-                                </CardContent>
-                            </CardActionArea>
-                        </Card>
-                    </Grid>
-                );
+                pushBackToShelfCard();
                 if (memory.lastChapterId.hasOwnProperty(book.name)) {
                     const oldChapterId: number = memory.lastChapterId[book.name];
                     if (oldChapterId < book.chapters.length) {
@@ -231,6 +236,8 @@ export default function ReaderTab({messenger, data, stage, bookId, chapterId, up
                                 </CardActionArea>
                             </Card>
                         </Grid>);
+                } else {
+                    pushBackToShelfCard();
                 }
             }
             break;
