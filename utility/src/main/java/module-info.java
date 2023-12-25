@@ -1,5 +1,5 @@
 module utility {
-    requires gson;
+    requires com.google.gson;
     requires java.sql;//for gson
 
     requires kafka.clients;
